@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+  _koa_pulsar_image_build: # fake service
+    image: koa_pulsar
+    entrypoint: ['echo', 'build completed']
+    build: 
+      context: koa_pulsar
+      dockerfile: Dockerfile
+  
+  tagger:
+    image: koa_pulsar
+    depends_on:
+      - _koa_pulsar_image_build
+    networks:
+      - intra
+
+  dispatcher:
+    image: koa_pulsar
+    depends_on:
+      - _koa_pulsar_image_build
+    networks:
+      - intra
+  
+  database:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - data_db:/data/db
+    expose: # nop, documentation only
+      - "27017"
+    networks:
+      - intra
+
+networks:
+  intra:
+    driver: bridge
