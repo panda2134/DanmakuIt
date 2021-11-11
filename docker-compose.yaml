@@ -1,38 +1,34 @@
 version: '3.9'
 services:
-  _koa_pulsar_image_build: # fake service
+  # TODO: reverse proxy
+  controller:
     image: koa_pulsar
-    entrypoint: ['echo', 'build completed']
     build: 
-      context: koa_pulsar
+      context: koa_pulsar_image
       dockerfile: Dockerfile
-  
-  tagger:
-    image: koa_pulsar
-    depends_on:
-      - _koa_pulsar_image_build
-    networks:
-      - intra
-
-  dispatcher:
-    image: koa_pulsar
-    depends_on:
-      - _koa_pulsar_image_build
-    networks:
-      - intra
-  
-  database:
-    image: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password
+    entrypoint: ['node', 'app/app.js']
     volumes:
-      - data_db:/data/db
-    expose: # nop, documentation only
-      - "27017"
+      - ./controller:/workspace/app
+    ports:
+      - '8000:8000'
+    networks:
+      - intra
+  
+  pulsar:
+    image: apachepulsar/pulsar:2.8.1
+    entrypoint: ['bin/pulsar', 'standalone']
+    volumes:
+      - pulsardata:/pulsar/data
+      - pulsarconf:/pulsar/conf
+    ports:
+      - '8080:8080'
+      - '6650:6650'
     networks:
       - intra
 
+volumes: 
+  pulsardata: {}
+  pulsarconf: {}
 networks:
   intra:
     driver: bridge
