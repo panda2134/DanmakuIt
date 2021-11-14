@@ -1,7 +1,9 @@
 const Koa = require('koa');
 const Router = require('@koa/router');
 const Pulsar = require('pulsar-client');
-
+const XMLParser = require('fast-xml-parser');
+const { createHash } = require('crypto');
+const { PassThrough } = require('stream');
 
 const app = new Koa();
 const router = new Router({
@@ -47,22 +49,37 @@ const consume = async ctx => {
         subscriptionType: 'Exclusive',
     });
 
+    ctx.req.on('close', async () => {
+        await consumer.close();
+        await client.close();
+    })
+
     // Receive messages
-    const msg_list = [];
-    for (let i = 0; i < 10; i += 1) {
-        const msg = await consumer.receive();
-        msg_list.push(msg.getData().toString());
-        consumer.acknowledge(msg);
+    const msg = await consumer.receive();
+    consumer.acknowledge(msg);
+    ctx.body = msg.getData().toString();
+    
+}
+
+const token = 'token_placeholder'
+
+const room_get = async ctx => {
+    const query = ctx.query;
+    const hash = createHash('sha1')
+    hash.update([token, query.timestamp, query.nonce].sort().join(''));
+    if (hash.digest('hex') === query.signature)
+    {
+        ctx.body = query.echostr;
+        return;
     }
-    await consumer.close();
-    await client.close();
-    ctx.body = msg_list;
+    ctx.body = '';
 }
 
 router
     .get('/', async ctx => {ctx.body = {message :'😂tes12t'}})
     .get('/produce', produce)
     .get('/consume', consume)
+    .get('/room', room_get)
 
 
 

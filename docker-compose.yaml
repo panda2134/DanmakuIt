@@ -2,9 +2,9 @@ version: '3.9'
 services:
   # TODO: reverse proxy
   controller:
-    image: koa_pulsar
+    image: controller
     build: 
-      context: koa_pulsar_image
+      context: controller_image
       dockerfile: Dockerfile
     entrypoint: ['node', 'app/app.js']
     volumes:
