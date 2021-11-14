@@ -2,6 +2,7 @@
     "dependencies": {
       "@koa/router": "^10.1.1",
       "koa": "^2.13.4",
-      "pulsar-client": "^1.4.1"
+      "pulsar-client": "^1.4.1",
+      "fast-xml-parser": "^3.21.1"
     }
   }  
