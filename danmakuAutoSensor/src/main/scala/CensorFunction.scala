@@ -24,18 +24,20 @@ class CensorFunction extends Function[String, CompletableFuture[String]] {
 
   object fetchAccessToken extends (() => Future[String]) {
     private val expirationTime = Period.ofDays(10)
-    private var lastFetchDateTime = new LocalDateTime(0)
+    private var lastFetchDateTime = LocalDateTime.now()
     private var tokenCache = ""
+    private val accessTokenUri = uri"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=$APIKey&client_secret=$SecretKey"
 
     private case class AccessTokenResponse(access_token: String)
 
     override def apply(): Future[String] = {
-      if (tokenCache == null ||
+      if (tokenCache == "" ||
         ((lastFetchDateTime plus expirationTime) isBefore LocalDateTime.now())) {
         // fetch again
+        println("Trying to fetch token")
         for {
           req <- basicRequest
-            .get(uri"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=$APIKey&client_secret=$SecretKey")
+            .get(accessTokenUri)
             .response(asJson[AccessTokenResponse])
             .send(sttpBackend)
         } yield {
@@ -48,22 +50,24 @@ class CensorFunction extends Function[String, CompletableFuture[String]] {
           tokenCache
         }
       } else {
-        Future(tokenCache)
+        Future successful tokenCache
       }
     }
   }
 
+  case class CensorResponse(conclusionType: Int)
   def censorRemote(t: String): Future[Boolean] = {
-    case class CensorResponse(conclusionType: Int)
     for {
       token <- fetchAccessToken()
-      t <- basicRequest.post(uri"https://aip.baidubce.com/rest/2.0/solution/v1/text_censor/v2/user_defined?access_token=$token")
+      censorUri = uri"https://aip.baidubce.com/rest/2.0/solution/v1/text_censor/v2/user_defined?access_token=$token"
+      t <- basicRequest
+        .post(censorUri)
         .body(Map("text" -> t))
         .response(asJson[CensorResponse])
         .send(sttpBackend)
         .map(_.body match {
           case Right(censorResponse) => censorResponse.conclusionType == 1
-          case Left(_) => false
+          case Left(t) => false
         })
     } yield t
   }
