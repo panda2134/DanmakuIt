@@ -1,10 +1,8 @@
 package site.panda2134.danmakuit
 
-import scala.jdk.FunctionConverters._
-import scala.jdk.FutureConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object DanmakuAutoCensorMain extends App{
+object DanmakuAutoCensorMain extends App {
   val censorFunc = new CensorFunction
   for {
     res1 <- censorFunc.censorAll("测试内容")
@@ -12,5 +10,6 @@ object DanmakuAutoCensorMain extends App{
   } {
     println("Expected true", res1)
     println("Expected false", res2)
+    System.exit(0)
   }
 }
