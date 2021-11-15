@@ -3,19 +3,22 @@ services:
   # TODO: reverse proxy
   controller:
     image: controller
-    build: 
+    build:
       context: controller_image
       dockerfile: Dockerfile
-    entrypoint: ['node', 'app/app.js']
+    entrypoint: ['python', 'app.py']
     volumes:
-      - ./controller:/workspace/app
+      - ./controller:/workspace
     ports:
       - '8000:8000'
     networks:
       - intra
   
   pulsar:
-    image: apachepulsar/pulsar:2.8.1
+    image: pulsar # with aiohttp for functions worker
+    build:
+      context: pulsar_image
+      dockerfile: Dockerfile
     entrypoint: ['bin/pulsar', 'standalone']
     volumes:
       - pulsardata:/pulsar/data
