@@ -26,6 +26,7 @@ class CensorFunction(Function):
         thread.start()
 
         self.session = asyncio.run_coroutine_threadsafe(create_session(), self.loop).result() # blocking
+        asyncio.run_coroutine_threadsafe(self.fetch_access_token(), self.loop).result() # blocking
     
     def __del__(self):
         asyncio.run_coroutine_threadsafe(self.session.close(), self.loop).result() # blocking
@@ -61,9 +62,9 @@ class CensorFunction(Function):
             topic_name='test',
             message='pass' if visibility else 'not pass'
         )
-        print('complete tag')
 
     def process(self, input: str, context: Context):
         if self.access_token_expiration < time.time():
             asyncio.run_coroutine_threadsafe(self.fetch_access_token(), self.loop).result() # blocking
+        # WARNING: "current message" of context will be updated by main thread, should not get message info from context object
         asyncio.run_coroutine_threadsafe(self.tag(input, context), self.loop)
