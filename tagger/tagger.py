@@ -38,6 +38,7 @@ class CensorFunction(Function):
                 self.access_token_expiration = time.time() + resp_obj['expires_in'] - 86400
 
     async def censor(self, text: str):
+        # reuse session will cause bug
         async with ClientSession() as session:
             async with session.post('https://aip.baidubce.com/rest/2.0/solution/v1/text_censor/v2/user_defined',
                                     params=dict(access_token=self.access_token),
