@@ -45,7 +45,18 @@ async def room_port_post(request: web.Request):
     return web.Response(text='success')
 
 @routes.get('/')
-async def room_port_post(request: web.Request):
+async def test(request: web.Request):
+    reader = pulsar_client.create_reader('test', start_message_id=pulsar.MessageId.earliest)
+    msgs = []
+    while reader.has_message_available():
+        # receive/read_next will block whole server if there is no message available
+        msg: bytes = reader.read_next().data()
+        msgs.append(msg.decode('utf-8'))
+    
+    return web.Response(text=str(msgs))
+
+@routes.get('/raw')
+async def test_raw(request: web.Request):
     reader = pulsar_client.create_reader('raw', start_message_id=pulsar.MessageId.earliest)
     msgs = []
     while reader.has_message_available():
@@ -53,7 +64,7 @@ async def room_port_post(request: web.Request):
         msg: bytes = reader.read_next().data()
         msgs.append(msg.decode('utf-8'))
     
-    return web.Response(text=str[msgs])
+    return web.Response(text=str(msgs))
 
 
 

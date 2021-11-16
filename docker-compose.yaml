@@ -23,6 +23,8 @@ services:
     volumes:
       - pulsardata:/pulsar/data
       - pulsarconf:/pulsar/conf
+      - ./conf/broker.conf:/pulsar/conf/broker.conf
+      - ./tagger/tagger.py:/pulsar/tagger.py
     ports:
       - '8080:8080'
       - '6650:6650'
