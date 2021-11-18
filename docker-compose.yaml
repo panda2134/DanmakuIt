@@ -19,11 +19,14 @@ services:
     build:
       context: pulsar_image
       dockerfile: Dockerfile
-    entrypoint: ['bin/pulsar', 'standalone']
+    entrypoint: ['bash', 'pulsar_entrypoint.sh']
     volumes:
       - pulsardata:/pulsar/data
       - pulsarconf:/pulsar/conf
+      - ./logs:/pulsar/logs
       - ./conf/broker.conf:/pulsar/conf/broker.conf
+      - ./entrypoint/pulsar_entrypoint.sh:/pulsar/pulsar_entrypoint.sh
+      - ./entrypoint/functions_create.sh:/pulsar/functions_create.sh
       - ./tagger/tagger.py:/pulsar/tagger.py
     ports:
       - '8080:8080'

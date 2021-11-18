@@ -1,5 +1,8 @@
+import json
 from hashlib import sha1
 from xml.etree import ElementTree
+
+from typing import Mapping
 
 from aiohttp import web
 import pulsar
@@ -7,13 +10,13 @@ pulsar_client = pulsar.Client('pulsar://pulsar:6650')
 
 routes = web.RouteTableDef()
 
-async def get_room_token(room_id: str):
+async def get_room_token(room: str):
     return 'placeholder'
 
-@routes.get('/room/{id}/port')
+@routes.get('/room/{room}/port')
 async def room_port_get(request: web.Request):
-    room_id = request.match_info['id']
-    token = await get_room_token(room_id)
+    room = request.match_info['room']
+    token = await get_room_token(room)
 
     query = request.query
     timestamp = query.get('timestamp', '')
@@ -33,36 +36,48 @@ async def room_port_get(request: web.Request):
 def send_raw_callback(res, msg_id):
     pass
 
-@routes.post('/room/{id}/port')
+@routes.post('/room/{room}/port')
 async def room_port_post(request: web.Request):
-    room_id = request.match_info['id']
+    room = request.match_info['room']
     root = ElementTree.fromstring(await request.text())
-    data = {el.tag: el.text for el in root}
+    data: Mapping[str, str] = {el.tag: el.text for el in root}
     content = data.get('Content', '')
+    sender = 'user_' + data.get('FromUserName', '')
 
     producer = pulsar_client.create_producer('raw')
-    producer.send_async(content=content.encode('utf-8'), callback=send_raw_callback)
+    producer.send_async(
+        content=json.dumps(
+            dict(
+                content=content,
+                sender=sender,
+                room=room
+            ),
+            ensure_ascii=False
+        ).encode(),
+        callback=send_raw_callback
+    )
     return web.Response(text='success')
 
-@routes.get('/')
-async def test(request: web.Request):
-    reader = pulsar_client.create_reader('test', start_message_id=pulsar.MessageId.earliest)
+@routes.get('/room/{room}')
+async def debug_room(request: web.Request):
+    room = request.match_info['room']
+    reader = pulsar_client.create_reader(f'persistent://public/default/{room}', start_message_id=pulsar.MessageId.earliest)
     msgs = []
     while reader.has_message_available():
         # receive/read_next will block whole server if there is no message available
         msg: bytes = reader.read_next().data()
-        msgs.append(msg.decode('utf-8'))
+        msgs.append(msg.decode())
     
-    return web.Response(text=str(msgs))
+    return web.Response(text=str(len(msgs)))
 
 @routes.get('/raw')
-async def test_raw(request: web.Request):
+async def debug_raw(request: web.Request):
     reader = pulsar_client.create_reader('raw', start_message_id=pulsar.MessageId.earliest)
     msgs = []
     while reader.has_message_available():
         # receive/read_next will block whole server if there is no message available
         msg: bytes = reader.read_next().data()
-        msgs.append(msg.decode('utf-8'))
+        msgs.append(msg.decode())
     
     return web.Response(text=str(msgs))
 
