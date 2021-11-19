@@ -6,9 +6,9 @@ services:
     build:
       context: controller_image
       dockerfile: Dockerfile
-    entrypoint: ['python', 'app.py']
+    entrypoint: ['gunicorn', '-b', '0.0.0.0:8000', '-w', '2', '-k', 'aiohttp.GunicornUVLoopWebWorker', 'app:app']
     volumes:
-      - ./controller:/workspace
+      - ./controller/app.py:/workspace/app.py
     ports:
       - '8000:8000'
     networks:
