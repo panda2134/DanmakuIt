@@ -49,7 +49,12 @@ async def room_port_post(request: web.Request):
 
     global producer
     if producer is None:
-        producer = pulsar_client.create_producer('persistent://public/default/raw')
+        producer = pulsar_client.create_producer(
+            'persistent://public/default/raw',
+            block_if_queue_full=True,
+            batching_enabled=True,
+            batching_max_publish_delay_ms=10
+        )
 
     producer.send_async(
         content=json.dumps(
