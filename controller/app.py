@@ -2,11 +2,14 @@ import json
 from hashlib import sha1
 from xml.etree import ElementTree
 
-from typing import Mapping
+import signal
+
+from typing import Mapping, Optional
 
 from aiohttp import web
 import pulsar
 pulsar_client = pulsar.Client('pulsar://pulsar:6650')
+producer: Optional[pulsar.Producer] = None
 
 routes = web.RouteTableDef()
 
@@ -44,7 +47,10 @@ async def room_port_post(request: web.Request):
     content = data.get('Content', '')
     sender = 'user_' + data.get('FromUserName', '')
 
-    producer = pulsar_client.create_producer('raw')
+    global producer
+    if producer is None:
+        producer = pulsar_client.create_producer('persistent://public/default/raw')
+
     producer.send_async(
         content=json.dumps(
             dict(
@@ -85,6 +91,14 @@ async def debug_raw(request: web.Request):
 
 app = web.Application()
 app.add_routes(routes)
+
+def atexit_function():
+    if producer is not None:
+        producer.flush()
+    pulsar_client.close()
+
+signal.signal(signal.SIGTERM, atexit_function)
+signal.signal(signal.SIGINT, atexit_function)
 
 if __name__ == '__main__':
     web.run_app(app, port=8000)
