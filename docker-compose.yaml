@@ -30,7 +30,6 @@ services:
       - ./tagger/tagger.py:/pulsar/tagger.py
     ports:
       - '8080:8080'
-      - '6650:6650'
     networks:
       - intra
 
