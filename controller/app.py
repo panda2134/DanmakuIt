@@ -1,6 +1,7 @@
 import json
 from hashlib import sha1
 from xml.etree import ElementTree
+import os, binascii
 
 import signal
 
@@ -9,12 +10,46 @@ from typing import Mapping, Optional
 from aiohttp import web
 import pulsar
 pulsar_client = pulsar.Client('pulsar://pulsar:6650')
-producer: Optional[pulsar.Producer] = None
+raw_producer: Optional[pulsar.Producer] = None
+state_update_producer: Optional[pulsar.Producer] = None
 
 routes = web.RouteTableDef()
 
 async def get_room_token(room: str):
     return 'placeholder'
+
+@routes.post('/room/{room}/port')
+async def room_port_post(request: web.Request):
+    room = request.match_info['room']
+    root = ElementTree.fromstring(await request.text())
+    data: Mapping[str, str] = {el.tag: el.text for el in root}
+    content = data.get('Content', '')
+    sender = 'user_' + data.get('FromUserName', '')
+
+    global raw_producer
+    if raw_producer is None:
+        raw_producer = pulsar_client.create_producer(
+            'persistent://public/default/raw',
+            block_if_queue_full=True,
+            batching_enabled=True,
+            batching_max_publish_delay_ms=10
+        )
+
+    def callback(res, msg_id): pass
+
+    raw_producer.send_async(
+        content=json.dumps(
+            dict(
+                content=content,
+                sender=sender,
+                room=room,
+                id=binascii.b2a_base64(os.urandom(24), newline=False).decode()
+            ),
+            ensure_ascii=False
+        ).encode(),
+        callback=callback
+    )
+    return web.Response(text='success')
 
 @routes.get('/room/{room}/port')
 async def room_port_get(request: web.Request):
@@ -36,50 +71,36 @@ async def room_port_get(request: web.Request):
     
     return web.Response(text='Wrong signature!')
 
-def send_raw_callback(res, msg_id):
-    pass
-
-@routes.post('/room/{room}/port')
-async def room_port_post(request: web.Request):
+@routes.post('/setting/{room}')
+async def setting_post(request: web.Request):
     room = request.match_info['room']
-    root = ElementTree.fromstring(await request.text())
-    data: Mapping[str, str] = {el.tag: el.text for el in root}
-    content = data.get('Content', '')
-    sender = 'user_' + data.get('FromUserName', '')
-
-    global producer
-    if producer is None:
-        producer = pulsar_client.create_producer(
-            'persistent://public/default/raw',
-            block_if_queue_full=True,
-            batching_enabled=True,
-            batching_max_publish_delay_ms=10
+    state_str = await request.text()
+    global state_update_producer
+    if state_update_producer is None:
+        state_update_producer = pulsar_client.create_producer(
+            'persistent://public/default/state',
+            block_if_queue_full=True
         )
+    def callback(res, msg_id): pass
 
-    producer.send_async(
-        content=json.dumps(
-            dict(
-                content=content,
-                sender=sender,
-                room=room
-            ),
-            ensure_ascii=False
-        ).encode(),
-        callback=send_raw_callback
+    state_update_producer.send_async(
+        content=json.dumps([room, 'replace', state_str]).encode(),
+        callback=callback
     )
     return web.Response(text='success')
+            
 
-@routes.get('/room/{room}')
+@routes.get('/debug/{room}')
 async def debug_room(request: web.Request):
     room = request.match_info['room']
     reader = pulsar_client.create_reader(f'persistent://public/default/{room}', start_message_id=pulsar.MessageId.earliest)
     msgs = []
     while reader.has_message_available():
         # receive/read_next will block whole server if there is no message available
-        msg: bytes = reader.read_next().data()
-        msgs.append(msg.decode())
+        msg = reader.read_next().properties()
+        msgs.append(msg)
     
-    return web.Response(text=str(len(msgs)))
+    return web.Response(text=str(msgs))
 
 @routes.get('/raw')
 async def debug_raw(request: web.Request):
@@ -98,8 +119,8 @@ app = web.Application()
 app.add_routes(routes)
 
 def atexit_function():
-    if producer is not None:
-        producer.flush()
+    if raw_producer is not None:
+        raw_producer.flush()
     pulsar_client.close()
 
 signal.signal(signal.SIGTERM, atexit_function)

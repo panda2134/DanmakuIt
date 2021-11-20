@@ -1,8 +1,9 @@
-import time, random
 import asyncio, threading
+import time, random
 import json
 
-from typing import Any, Mapping
+
+from typing import Mapping, Optional
 
 from aiohttp import ClientSession
 from pulsar import Function, Context, SerDe
@@ -35,7 +36,7 @@ class TaggingFunction(Function):
 
         asyncio.run_coroutine_threadsafe(self.fetch_access_token(), loop) # infinite loop fetch access token
 
-        self.state_cache: Mapping[str, bytes] = {}
+        self.state_cache: Mapping[str, dict] = {}
     
     def __del__(self):
         asyncio.run_coroutine_threadsafe(self.session.close(), self.loop).result() # blocking
@@ -67,7 +68,7 @@ class TaggingFunction(Function):
                                 data=f'text={text}',
                                 headers={'content-type': 'application/x-www-form-urlencoded'}) as resp:
             resp_obj: Mapping = await resp.json(content_type=None)
-            result: int = resp_obj.get('conclusionType')
+            result: Optional[int] = resp_obj.get('conclusionType')
             if result is not None:
                 return (result == 1)
             
@@ -82,31 +83,42 @@ class TaggingFunction(Function):
         obj: Mapping[str, str] = json.loads(input.decode())
         
         content = obj['content']
-        sender = obj['sender']
         room = obj['room']
-        room_state_binary = self.state_cache.get(room)
-        room_state: Mapping[str, Any] = json.loads(room_state_binary.decode()) if room_state_binary is not None else {}
+    
+        room_state = self.state_cache.get(room, {})
+
         visibility = True # TODO: room specific censor
         if visibility and room_state.get('remote_censor'):
-            visibility = await self.remote_censor(context)
+            visibility = await self.remote_censor(content)
+
         # internal send_async
         context.publish(
             topic_name=f'persistent://public/default/{room}',
-            message=json.dumps(
-                dict(
-                    content=content,
-                    sender=sender,
-                    visibility=visibility
-                ),
-                ensure_ascii=False
-            ).encode()
+            message=b'\x00\x00\x00', # new danmaku
+            serde_class_name='tagger.BytesIdentity',
+            properties=dict(
+                content=content,
+                sender=obj['sender'],
+                id=obj['id'],
+                visibility='1' if visibility else '0' # properties must be string
+            )
         )
 
     def process(self, input: bytes, context: Context):
-        if context.get_current_message_topic_name() == 'persistent://public/default/state_update':
-            # notify state update
-            room = input.decode()
-            self.state_cache[room] = context.get_state(room)
+        if context.get_current_message_topic_name() == 'persistent://public/default/state':
+            arr = json.loads(input.decode())
+            room: str = arr[0]
+            method: str = arr[1]
+            if method == 'replace':
+                state_str: str = arr[2]
+                self.state_cache[room] = json.loads(state_str)
+                context.put_state(room, state_str)
+                return
+            if method == 'load':
+                state_str: str = context.get_state(room)
+                self.state_cache[room] = json.loads(state_str)
+                return
+            print(arr)
             return
         
         # WARNING: "current message" of context will be updated by main thread

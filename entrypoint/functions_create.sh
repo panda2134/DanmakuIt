@@ -6,4 +6,4 @@ bin/pulsar-admin functions create \
   --tenant public \
   --namespace default \
   --name tagger \
-  --custom-serde-inputs '{"raw":"tagger.BytesIdentity","state_update":"tagger.BytesIdentity"}'
+  --custom-serde-inputs '{"raw":"tagger.BytesIdentity","state":"tagger.BytesIdentity"}'
