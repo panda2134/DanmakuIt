@@ -24,13 +24,14 @@ def on_error(ws, error):
 
 def on_close(ws, close_status_code, close_msg):
     print("### close ###")
+    exit()
 
 
 def on_open(ws):
     print("### open ###")
 
 ws = websocket.WebSocketApp(
-    'ws://localhost:8080/ws/v2/consumer/persistent/public/default/3/testsub',
+    'wss://se-srv2.panda2134.site/ws/v2/consumer/persistent/public/default/3/testsub',
     on_open=on_open,
     on_message=on_message,
     on_error=on_error,
