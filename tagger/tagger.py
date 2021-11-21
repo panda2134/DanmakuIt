@@ -1,5 +1,5 @@
 import asyncio, threading
-import time, random
+import time, os, binascii
 import json
 
 
@@ -75,8 +75,8 @@ class TaggingFunction(Function):
             if resp_obj.get('error_code') != 18 or retry_times >= self.remote_censor_max_retry_times:
                 return False
             
-            # qps limit, retry after 1 ~ 3 sec
-            await asyncio.sleep(1.0 + random.random() * 2.0)
+            # qps limit, retry after 1 ~ 3.55 sec
+            await asyncio.sleep(1 + int.from_bytes(os.urandom(1), 'little') * 0.01)
             return await self.remote_censor(text, retry_times + 1)
 
     async def tag(self, input: bytes, context: Context):
@@ -87,9 +87,9 @@ class TaggingFunction(Function):
     
         room_state = self.state_cache.get(room, {})
 
-        visibility = True # TODO: room specific censor
-        if visibility and room_state.get('remote_censor'):
-            visibility = await self.remote_censor(content)
+        permission = True # TODO: room specific censor
+        if permission and room_state.get('remote_censor'):
+            permission = await self.remote_censor(content)
 
         # internal send_async
         context.publish(
@@ -98,9 +98,12 @@ class TaggingFunction(Function):
             serde_class_name='tagger.BytesIdentity',
             properties=dict(
                 content=content,
+                id=binascii.b2a_base64(os.urandom(24), newline=False).decode(),
                 sender=obj['sender'],
-                id=obj['id'],
-                visibility='1' if visibility else '0' # properties must be string
+                permission='1' if permission else '0', # properties must be string
+                color=room_state.get('color', 'undefined'),
+                size=room_state.get('size', '16pt'),
+                pos=room_state.get('pos', 'rightleft')
             )
         )
 
@@ -118,6 +121,7 @@ class TaggingFunction(Function):
                 state_str: str = context.get_state(room)
                 self.state_cache[room] = json.loads(state_str)
                 return
+            # invalid method!
             print(arr)
             return
         
