@@ -116,10 +116,11 @@ async def debug_raw(request: web.Request):
 app = web.Application()
 app.add_routes(routes)
 
-def atexit_function():
+def atexit_function(*args):
     if raw_producer is not None:
         raw_producer.flush()
     pulsar_client.close()
+    raise web.GracefulExit
 
 signal.signal(signal.SIGTERM, atexit_function)
 signal.signal(signal.SIGINT, atexit_function)
