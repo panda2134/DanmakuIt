@@ -1,7 +1,6 @@
 import json
 from hashlib import sha1
 from xml.etree import ElementTree
-import os, binascii
 
 import signal
 
@@ -43,7 +42,6 @@ async def room_port_post(request: web.Request):
                 content=content,
                 sender=sender,
                 room=room,
-                id=binascii.b2a_base64(os.urandom(24), newline=False).decode()
             ),
             ensure_ascii=False
         ).encode(),
