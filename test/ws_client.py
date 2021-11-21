@@ -38,7 +38,7 @@ ws = websocket.WebSocketApp(
 )
 
 
-ws_thread = Thread(target=ws.run_forever, daemon=True)
+ws_thread = Thread(target=ws.run_forever)
 
 def atexit(*args):
     ws.close()
@@ -46,6 +46,7 @@ def atexit(*args):
     exit()
 
 signal.signal(signal.SIGINT, atexit)
+signal.signal(signal.SIGTERM, atexit)
 
 ws_thread.start()
 
