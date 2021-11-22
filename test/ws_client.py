@@ -5,6 +5,7 @@ from threading import Thread
 from time import sleep
 
 import websocket
+import requests
 
 
 def on_message(ws: websocket.WebSocketApp, message: str):
@@ -32,29 +33,32 @@ def on_open(ws):
 with open('../token/super_user') as f:
     token = f.read()
 
-domain = 'ws://localhost:8000' # 'wss://se-srv2.panda2134.site'
+schema = 'ws'
+domain = 'localhost:8000' # 'se-srv2.panda2134.site'
 
-ws = websocket.WebSocketApp(
-    f'{domain}/websocket/consumer/persistent/public/default/3/sub?token={token}',
-    # header={'Authorization': 'Bearer ' + token},
-    on_open=on_open,
-    on_message=on_message,
-    on_error=on_error,
-    on_close=on_close
-)
+if __name__ == '__main__':
+    token = requests.post(f'http://{domain}/room/3').text
+    ws = websocket.WebSocketApp(
+        f'{schema}://{domain}/websocket/consumer/persistent/public/default/3/sub?token={token}',
+        # header={'Authorization': 'Bearer ' + token},
+        on_open=on_open,
+        on_message=on_message,
+        on_error=on_error,
+        on_close=on_close
+    )
 
 
-ws_thread = Thread(target=ws.run_forever)
+    ws_thread = Thread(target=ws.run_forever)
 
-def atexit(*args):
-    ws.close()
-    ws_thread.join()
-    exit()
+    def atexit(*args):
+        ws.close()
+        ws_thread.join()
+        exit()
 
-signal.signal(signal.SIGINT, atexit)
-signal.signal(signal.SIGTERM, atexit)
+    signal.signal(signal.SIGINT, atexit)
+    signal.signal(signal.SIGTERM, atexit)
 
-ws_thread.start()
+    ws_thread.start()
 
-while ws_thread.is_alive():
-    sleep(1)
+    while ws_thread.is_alive():
+        sleep(1)

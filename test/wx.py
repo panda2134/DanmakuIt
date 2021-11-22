@@ -44,18 +44,18 @@ async def main():
         async with session.post(f'{domain}/room/3') as resp:
                 print(await resp.text())
 
-        # async with session.get(f'{domain}/setting/3') as resp:
-        #         print(await resp.text())
+        async with session.get(f'{domain}/setting/3') as resp:
+                print(await resp.text())
 
-        # async with session.post(f'{domain}/room/3/port',
-        #                         data=data_not_pass,
-        #                         headers={'Content-Type': 'application/xml'}) as resp:
-        #     print(await resp.text())
+        async with session.post(f'{domain}/room/3/port',
+                                data=data_not_pass,
+                                headers={'Content-Type': 'application/xml'}) as resp:
+            print(await resp.text())
 
-        # async with session.post(f'{domain}/room/3/port',
-        #                         data=data,
-        #                         headers={'Content-Type': 'application/xml'}) as resp:
-        #     print(await resp.text())
+        async with session.post(f'{domain}/room/3/port',
+                                data=data,
+                                headers={'Content-Type': 'application/xml'}) as resp:
+            print(await resp.text())
 
 if __name__ == '__main__':
     if type(asyncio.get_event_loop_policy()) == asyncio.WindowsProactorEventLoopPolicy:
