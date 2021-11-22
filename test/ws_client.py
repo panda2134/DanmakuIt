@@ -30,8 +30,6 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     print("### open ###")
 
-with open('../token/super_user') as f:
-    token = f.read()
 
 schema = 'ws'
 domain = 'localhost:8000' # 'se-srv2.panda2134.site'
