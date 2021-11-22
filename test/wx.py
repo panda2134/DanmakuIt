@@ -19,7 +19,7 @@ data_not_pass = """
 """
 
 perf_test = False
-set_state = False
+set_state = True
 censor = True
 
 domain = 'http://localhost:8000' # 'https://se-srv.panda2134.site'
@@ -40,6 +40,9 @@ async def main():
             async with session.post(f'{domain}/setting/3', data=json.dumps({'remote_censor': censor})) as resp:
                 print(await resp.text())
                 await asyncio.sleep(3)
+        
+        async with session.get(f'{domain}/setting/3') as resp:
+                print(await resp.text())
 
         async with session.post(f'{domain}/room/3/port',
                                 data=data_not_pass,
