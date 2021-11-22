@@ -1,6 +1,6 @@
-接入点（反向代理重写前）
+接入点（本地运行）
 
-wss://pulsar:8080/ws/v2/consumer/persistent/public/default/{room}/{subscription}
+ws://localhost:8000/websocket/consumer/persistent/public/default/{room}/{subscription}
 
 pulsar指pulsar容器，在Docker外部访问使用localhost
 
