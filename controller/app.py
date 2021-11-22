@@ -35,7 +35,7 @@ async def room_post(request: web.Request):
             if resp.status != 204:
                 return web.Response(text=f'grant permission error: {resp.status}')
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
-    return web.Response(text=f'token:{token}')
+    return web.Response(text=token)
 
 async def get_room_token(room: str):
     return 'placeholder'
@@ -116,6 +116,8 @@ async def setting_post(request: web.Request):
     async with ClientSession() as session:
         async with session.get(f'http://pulsar:8080/admin/v3/functions/public/default/tagger/state/{room}', headers=super_user_headers) as resp:
             obj: Mapping[str, Union[str,int]] = await resp.json()
+            if 'stringValue' not in obj:
+                return web.Response(text='setting is not initialized')
             return web.Response(text=obj['stringValue'])
 
 @routes.get('/debug/{room}')
