@@ -4,18 +4,19 @@ import json
 from hashlib import sha1
 from xml.etree import ElementTree
 
-from typing import Mapping, Optional
+from typing import Mapping, Optional, Union
 
 from cryptography.hazmat.primitives import serialization
 import jwt
 
-from aiohttp import web
+from aiohttp import web, ClientSession
 import pulsar
 
 with open('/private_key/private.key', 'rb') as f:
     private_key = serialization.load_der_private_key(f.read(), None)
 # jwt's key can be cryptography key object or str(PEM/SSH or HMAC secret)
 super_user_token = jwt.encode({'sub': 'super-user'}, private_key, algorithm='RS256', headers={'typ': None})
+super_user_headers = {'Authorization': f'Bearer {super_user_token}'}
 
 pulsar_client = pulsar.Client('pulsar://pulsar:6650', pulsar.AuthenticationToken(super_user_token))
 raw_producer: Optional[pulsar.Producer] = None
@@ -99,7 +100,14 @@ async def setting_post(request: web.Request):
         callback=callback
     )
     return web.Response(text='success')
-            
+
+@routes.get('/setting/{room}')
+async def setting_post(request: web.Request):
+    room = request.match_info['room']
+    async with ClientSession() as session:
+        async with session.get(f'http://pulsar:8080/admin/v3/functions/public/default/tagger/state/{room}', headers=super_user_headers) as resp:
+            obj: Mapping[str, Union[str,int]] = await resp.json()
+            return web.Response(text=obj['stringValue'])
 
 @routes.get('/debug/{room}')
 async def debug_room(request: web.Request):
