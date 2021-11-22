@@ -24,14 +24,19 @@ def on_error(ws, error):
 
 def on_close(ws, close_status_code, close_msg):
     print("### close ###")
-    exit()
 
 
 def on_open(ws):
     print("### open ###")
 
+with open('../token/super_user') as f:
+    token = f.read()
+
+domain = 'ws://localhost:8000' # 'wss://se-srv2.panda2134.site'
+
 ws = websocket.WebSocketApp(
-    'wss://se-srv2.panda2134.site/ws/v2/consumer/persistent/public/default/3/testsub',
+    f'{domain}/websocket/consumer/persistent/public/default/3/sub?token={token}',
+    # header={'Authorization': 'Bearer ' + token},
     on_open=on_open,
     on_message=on_message,
     on_error=on_error,
@@ -51,5 +56,5 @@ signal.signal(signal.SIGTERM, atexit)
 
 ws_thread.start()
 
-while True:
+while ws_thread.is_alive():
     sleep(1)

@@ -1,2 +1,4 @@
-node_modules
 logs
+private_key
+public_key
+token

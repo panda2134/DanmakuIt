@@ -6,11 +6,14 @@ services:
     build:
       context: controller_image
       dockerfile: Dockerfile
-    entrypoint: ['gunicorn', '-b', '0.0.0.0:8000', '-w', '2', '-k', 'aiohttp.GunicornUVLoopWebWorker', 'app:app']
+    entrypoint: ['bash', 'controller_entrypoint.sh']
     volumes:
+      - ./private_key:/private_key
+      - ./public_key:/public_key
+      - ./token:/token
       - ./controller/app.py:/workspace/app.py
-    ports:
-      - '8000:8000'
+      - ./controller/keys_create.py:/workspace/keys_create.py
+      - ./entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
     networks:
       - intra
   
@@ -21,15 +24,32 @@ services:
       dockerfile: Dockerfile
     entrypoint: ['bash', 'pulsar_entrypoint.sh']
     volumes:
+      - ./public_key:/public_key
+      - ./token:/token
       - pulsardata:/pulsar/data
       - pulsarconf:/pulsar/conf
-      - ./logs:/pulsar/logs
-      - ./conf/broker.conf:/pulsar/conf/broker.conf
+      - ./conf/standalone.conf:/pulsar/conf/standalone.conf # real conf
+      - ./conf/broker.conf:/pulsar/conf/broker.conf # only for further deployment
+      - ./conf/client.conf:/pulsar/conf/client.conf
+      - ./conf/functions_worker.yml:/pulsar/conf/functions_worker.yml
+      - ./tagger/tagger.py:/pulsar/tagger.py
       - ./entrypoint/pulsar_entrypoint.sh:/pulsar/pulsar_entrypoint.sh
       - ./entrypoint/functions_create.sh:/pulsar/functions_create.sh
-      - ./tagger/tagger.py:/pulsar/tagger.py
+      - ./logs:/pulsar/logs
+    networks:
+      - intra
+    depends_on:
+      - controller
+
+  nginx:
+    image: nginx:alpine
     ports:
-      - '8080:8080'
+      - "8000:8000"
+    volumes:
+      - ./conf/nginx:/etc/nginx/conf.d
+    depends_on:
+      - controller
+      - pulsar
     networks:
       - intra
 

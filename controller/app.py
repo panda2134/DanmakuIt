@@ -1,18 +1,31 @@
+import signal
+
 import json
 from hashlib import sha1
 from xml.etree import ElementTree
 
-import signal
-
 from typing import Mapping, Optional
+
+from cryptography.hazmat.primitives import serialization
+import jwt
 
 from aiohttp import web
 import pulsar
-pulsar_client = pulsar.Client('pulsar://pulsar:6650')
+
+with open('/private_key/private.key', 'rb') as f:
+    private_key = serialization.load_der_private_key(f.read(), None)
+# jwt's key can be cryptography key object or str(PEM/SSH or HMAC secret)
+super_user_token = jwt.encode({'sub': 'super-user'}, private_key, algorithm='RS256', headers={'typ': None})
+
+pulsar_client = pulsar.Client('pulsar://pulsar:6650', pulsar.AuthenticationToken(super_user_token))
 raw_producer: Optional[pulsar.Producer] = None
 state_update_producer: Optional[pulsar.Producer] = None
 
 routes = web.RouteTableDef()
+
+@routes.get('/token')
+async def token_get(request: web.Request):
+    return web.Response(text=super_user_token)
 
 async def get_room_token(room: str):
     return 'placeholder'

@@ -19,32 +19,34 @@ data_not_pass = """
 """
 
 perf_test = False
-censor = False
+set_state = False
+censor = True
 
-controller = 'https://se-srv.panda2134.site'
-pulsar = 'https://se-srv2.panda2134.site'
+domain = 'http://localhost:8000' # 'https://se-srv.panda2134.site'
+
+with open('../token/super_user') as f:
+    token = 'Bearer ' + f.read()
 
 async def main():
     async with ClientSession() as session:
         if perf_test:
             for _ in tqdm(range(100)):
-                async with session.post(f'{controller}/room/3/port',
+                async with session.post(f'{domain}/room/3/port',
                                         data=data,
                                         headers={'Content-Type': 'application/xml'}) as resp:
                     pass
 
-        async with session.post(f'{controller}/setting/3', data=json.dumps({'remote_censor': censor})) as resp:
-            print(await resp.text())
-            await asyncio.sleep(3)
-        async with session.get(f'{pulsar}/admin/v3/functions/public/default/tagger/state/3') as resp:
-            print(resp.status, await resp.text())
+        if set_state:
+            async with session.post(f'{domain}/setting/3', data=json.dumps({'remote_censor': censor})) as resp:
+                print(await resp.text())
+                await asyncio.sleep(3)
 
-        async with session.post(f'{controller}/room/3/port',
+        async with session.post(f'{domain}/room/3/port',
                                 data=data_not_pass,
                                 headers={'Content-Type': 'application/xml'}) as resp:
             print(await resp.text())
 
-        async with session.post(f'{controller}/room/3/port',
+        async with session.post(f'{domain}/room/3/port',
                                 data=data,
                                 headers={'Content-Type': 'application/xml'}) as resp:
             print(await resp.text())
