@@ -24,14 +24,23 @@ state_update_producer: Optional[pulsar.Producer] = None
 
 routes = web.RouteTableDef()
 
-@routes.get('/token')
-async def token_get(request: web.Request):
-    return web.Response(text=super_user_token)
+@routes.post('/room/{room}') # creat room
+async def room_post(request: web.Request):
+    room = request.match_info['room']
+    async with ClientSession() as session:
+        async with session.put(f'http://pulsar:8080/admin/v2/persistent/public/default/{room}', headers=super_user_headers) as resp:
+            if resp.status not in {204, 409}:
+                return web.Response(text=f'create topic error: {resp.status}')
+        async with session.post(f'http://pulsar:8080/admin/v2/persistent/public/default/{room}/permissions/display_{room}', json=['consume'], headers=super_user_headers) as resp:
+            if resp.status != 204:
+                return web.Response(text=f'grant permission error: {resp.status}')
+    token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
+    return web.Response(text=f'token:{token}')
 
 async def get_room_token(room: str):
     return 'placeholder'
 
-@routes.post('/room/{room}/port')
+@routes.post('/room/{room}/port') # wechat send danmaku
 async def room_port_post(request: web.Request):
     room = request.match_info['room']
     root = ElementTree.fromstring(await request.text())
@@ -63,7 +72,7 @@ async def room_port_post(request: web.Request):
     )
     return web.Response(text='success')
 
-@routes.get('/room/{room}/port')
+@routes.get('/room/{room}/port') # wechat access
 async def room_port_get(request: web.Request):
     room = request.match_info['room']
     token = await get_room_token(room)
@@ -83,7 +92,7 @@ async def room_port_get(request: web.Request):
     
     return web.Response(text='Wrong signature!')
 
-@routes.post('/setting/{room}')
+@routes.post('/setting/{room}') # replace room setting
 async def setting_post(request: web.Request):
     room = request.match_info['room']
     state_str = await request.text()
@@ -101,7 +110,7 @@ async def setting_post(request: web.Request):
     )
     return web.Response(text='success')
 
-@routes.get('/setting/{room}')
+@routes.get('/setting/{room}') # get room setting
 async def setting_post(request: web.Request):
     room = request.match_info['room']
     async with ClientSession() as session:
