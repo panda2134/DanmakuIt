@@ -158,4 +158,4 @@ signal.signal(signal.SIGTERM, atexit_function)
 signal.signal(signal.SIGINT, atexit_function)
 
 if __name__ == '__main__':
-    web.run_app(app, port=8000)
+    web.run_app(app, port=8000, handle_signals=False)
