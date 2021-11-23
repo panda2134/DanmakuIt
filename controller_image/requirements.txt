@@ -1,0 +1,5 @@
+aiohttp
+uvloop
+gunicorn
+cryptography
+PyJWT

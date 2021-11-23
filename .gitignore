@@ -1,2 +1,4 @@
-node_modules
-debug
+logs
+private_key
+public_key
+token
