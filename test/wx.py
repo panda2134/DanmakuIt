@@ -24,9 +24,6 @@ censor = True
 
 domain = 'http://localhost:8000' # 'https://se-srv.panda2134.site'
 
-with open('../token/super_user') as f:
-    token = 'Bearer ' + f.read()
-
 async def main():
     async with ClientSession() as session:
         if perf_test:
