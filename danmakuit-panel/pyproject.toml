@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = ["panda2134 <ljypanda@live.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = {extras = ["all"], version = "^0.70.0"}
+motor = "^2.5.1"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+aiohttp = {extras = ["speedups"], version = "^3.8.1"}
+Authlib = "^0.15.5"
+httpx = "^0.21.1"
+python-dotenv = "^0.19.2"
+
+[tool.poetry.dev-dependencies]
+devtools = "^0.8.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

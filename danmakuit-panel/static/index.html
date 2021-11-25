@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Login Test</title>
+</head>
+<body>
+    <span>token is <span id="hint">not found</span></span>.
+    <p>
+    Back to
+    <a href="/docs">OpenAPI</a> or
+    <a href="/redoc">ReDoc</a>
+    </p>
+    <script>
+        const hintElement = document.querySelector('#hint')
+        const queryStr = location.search.substr(1)
+        for (const [k, v] of new URLSearchParams(queryStr)) {
+            if (k === 'token') {
+                hintElement.innerHTML = 'found and copied'
+                navigator.clipboard.writeText(v)
+            }
+        }
+    </script>
+</body>
+</html>
