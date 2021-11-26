@@ -1,21 +1,29 @@
 from typing import Optional, Sequence
 
+import asyncio
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.encoders import jsonable_encoder
+
+from httpx import HTTPError
 
 from app.models.room import Room, RoomCreation, RoomUpdate
 from app.models.user import User
 from app.utils.jwt import get_current_user
 from app.utils.room import generate_room_id, readable_sha256
 
-from app.db import room_collection, DESCENDING
+from app.config import app_config
+from app.db import room_collection, DESCENDING, ReturnDocument
+from app.http_client import http_client
+
 
 router = APIRouter(tags=['room'])
- 
-salt = b'place_holder' # TODO: allow admin regenerate salt without restart sever
+
+salt = b'place_holder'  # TODO: allow admin regenerate salt without restart sever
 
 rooms_id_cache: Optional[set] = None
+
 
 @router.post('/', response_model=Room)
 async def create_room(room: RoomCreation, user: User = Depends(get_current_user)):
@@ -27,13 +35,24 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
         room_id = generate_room_id()
         if room_id not in rooms_id_cache:
             break
+        await asyncio.sleep(0.2)
+
     room = Room(uid=user.uid, name=room.name,
                 room_id=room_id,
                 creation_time=datetime.utcnow(),
                 wechat_token=readable_sha256(room_id.encode() + salt))
+    if not app_config.debug:
+        try:
+            create_res = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
+            create_res.raise_for_status()
+            update_res = await http_client.post(f'{app_config.controller_url}/setting/{room_id}',
+                                                json=jsonable_encoder(room))
+            update_res.raise_for_status()
+        except HTTPError:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail='Failed to notify pulsar on room creation.')
     await room_collection.insert_one(room.dict())
     rooms_id_cache.add(room_id)
-    # TODO: push room data to pulsar
     return room
 
 
@@ -60,11 +79,22 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
     if room_id not in rooms_id_cache:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
 
-    res = await room_collection.update_one(room_query, {'$set': room.dict(exclude_unset=True)})
-    if res.modified_count == 0:
+    updated_room = await room_collection.find_one_and_update(room_query, {'$set': room.dict(exclude_unset=True)}, return_document=ReturnDocument.AFTER)
+    if updated_room is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Cannot modify the room.')
-    # TODO: push room data to pulsar
-    return await room_collection.find_one(room_query)
+    updated_room = Room.parse_obj(updated_room)
+    if not app_config.debug:
+        try:
+            create_res = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
+            create_res.raise_for_status()
+            update_res = await http_client.post(f'{app_config.controller_url}/setting/{room_id}',
+                                                json=jsonable_encoder(updated_room))
+            update_res.raise_for_status()
+        except HTTPError:
+            # TODO: roll back
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail='Failed to notify pulsar on room creation.')
+    return updated_room
 
 
 @router.delete('/{room_id}', response_model=Room)
