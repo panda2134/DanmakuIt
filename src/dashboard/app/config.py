@@ -46,8 +46,6 @@ class Settings(BaseSettings):
     mongo_db_name: str = 'danmakuit'
     room = RoomSettings()
     session_secret = Field('729b4532d811a1122f61ddc7bfe9711d', env='SESSION_SECRET')
-    room_passcode_salt = Field('b03f48507082262537fe82934ee04d4d', env='ROOM_PASSCODE_SECRET')
-    wechat_passcode_salt = Field('486b0f76b2a165173a0c83cf82f5dafa', env='WECHAT_PASSCODE_SECRET')
 
 
 app_config = Settings()
