@@ -44,7 +44,8 @@ class Settings(BaseSettings):
     mongo_url: AnyUrl = Field('mongodb://localhost:27017')
     mongo_db_name: str = 'danmakuit'
     room = RoomSettings()
-    session_secret = '***REMOVED***'
+    session_secret = Field('***REMOVED***', env='SESSION_SECRET')
+    room_number_secret = Field('486b0f76b2a165173a0c83cf82f5dafa', env='ROOM_NUMBER_SECRET')
 
 
 app_config = Settings()
