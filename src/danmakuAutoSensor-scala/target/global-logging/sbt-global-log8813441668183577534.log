@@ -1,0 +1,150 @@
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(early(addDefaultCommands), None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(addDefaultCommands, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(early(initialize), None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(initialize, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(early(addPluginSbtFile="""/tmp/idea1.sbt"""), None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(addPluginSbtFile="""/tmp/idea1.sbt""", None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(boot, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(writeSbtVersion, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(reload, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(sbtStashOnFailure, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(onFailure loadFailed, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(loadp, None, None)[0m
+[0m[[0m[0minfo[0m] [0m[0mwelcome to sbt 1.5.5 (Oracle Corporation Java 11.0.13)[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadUnit: plugins took 95.909306ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadUnit: defsScala took 0.348534ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Scanning directory /home/panda2134/.sbt/1.0/plugins[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Found non-root projects [0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /home/panda2134/.sbt/1.0/plugins, returning: ()[0m
+[0m[[0m[0mdebug[0m] [0m[0mdeducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))[0m
+[0m[[0m[0mdebug[0m] [0m[0m  :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)[0m
+[0m[[0m[0mdebug[0m] [0m[0mPlugins.deducer#function took 22.022657 ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m          Load.resolveProject(global-plugins) took 57.963306ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m        Load.loadTransitive: finalizeProject(Project(id global-plugins, base: /home/panda2134/.sbt/1.0/plugins, plugins: List(<none>))) took 107.768462ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /home/panda2134/.sbt/1.0/plugins, returning: (global-plugins)[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadUnit: loadedProjectsRaw took 130.388463ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadUnit: cleanEvalClasses took 0.32306ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit(file:/home/panda2134/.sbt/1.0/plugins/, ...) took 236.757609ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: load took 403.775847ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: resolveProjects took 4.845873ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: finalTransforms took 53.014605ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: config.delegates took 5.961744ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: Def.make(settings)... took 378.954743ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: structureIndex took 121.602522ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.apply: mkStreams took 1.324616ms[0m
+[0m[[0m[0minfo[0m] [0m[0mloading global plugins from /home/panda2134/.sbt/1.0/plugins[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.defaultLoad until apply took 2397.195254ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m          Load.loadUnit: plugins took 15.599232ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m          Load.loadUnit: defsScala took 0.003715ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Scanning directory /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/project[0m
+[0m[[0m[0mdebug[0m] [0m[0m            Load.loadUnit: mkEval took 5.243206ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Found non-root projects [0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/project, returning: ()[0m
+[0m[[0m[0mdebug[0m] [0m[0mdeducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))[0m
+[0m[[0m[0mdebug[0m] [0m[0m  :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)[0m
+[0m[[0m[0mdebug[0m] [0m[0mPlugins.deducer#function took 1.77962 ms[0m
+[0m[[0m[0minfo[0m] [0m[0mloading settings for project danmakuautosensor-build from plugins.sbt,idea1.sbt ...[0m
+[0m[[0m[0mdebug[0m] [0m[0m              Load.resolveProject(danmakuautosensor-build) took 2.684248ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m            Load.loadTransitive: finalizeProject(Project(id danmakuautosensor-build, base: /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/project, plugins: List(<none>))) took 4.996955ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/project, returning: (danmakuautosensor-build)[0m
+[0m[[0m[0mdebug[0m] [0m[0m          Load.loadUnit: loadedProjectsRaw took 113.879771ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m          Load.loadUnit: cleanEvalClasses took 2.660808ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m        Load.loadUnit(file:/home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/project/, ...) took 132.743556ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: load took 133.955404ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: resolveProjects took 0.099049ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: finalTransforms took 10.896765ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: config.delegates took 0.44704ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: Def.make(settings)... took 89.650669ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: structureIndex took 31.09374ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.apply: mkStreams took 0.003185ms[0m
+[0m[[0m[0minfo[0m] [0m[0mloading project definition from /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/project[0m
+[0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: plugins took 490.668468ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: defsScala took 0.003807ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Scanning directory /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadUnit: mkEval took 0.277655ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Found non-root projects [0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor, returning: ()[0m
+[0m[[0m[0mdebug[0m] [0m[0mdeducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbtide.ConfigPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(org.jetbrains.sbt.StructurePlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(org.jetbrains.sbt.IdeaShellPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(org.jetbrains.sbt.indices.SbtIntellijIndicesPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(org.jetbrains.sbt.StructurePlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(org.jetbrains.sbt.IdeaShellPlugin)))[0m
+[0m[[0m[0mdebug[0m] [0m[0mClause(And(Set(Atom(sbt.plugins.CorePlugin), Atom(sbt.plugins.JvmPlugin))),Set(Atom(org.jetbrains.sbt.indices.SbtIntellijIndicesPlugin))))[0m
+[0m[[0m[0mdebug[0m] [0m[0m  :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.SemanticdbPlugin,org.jetbrains.sbt.indices.SbtIntellijIndicesPlugin,sbt.plugins.JUnitXmlReportPlugin,org.jetbrains.sbt.IdeaShellPlugin,org.jetbrains.sbt.StructurePlugin,sbt.plugins.MiniDependencyTreePlugin)[0m
+[0m[[0m[0mdebug[0m] [0m[0mPlugins.deducer#function took 2.546131 ms[0m
+[0m[[0m[0minfo[0m] [0m[0mloading settings for project danmakuautosensor from build.sbt ...[0m
+[0m[[0m[0mdebug[0m] [0m[0m        Load.resolveProject(danmakuautosensor) took 22.127546ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadTransitive: finalizeProject(Project(id danmakuautosensor, base: /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor, plugins: List(<none>))) took 25.834518ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor, returning: (danmakuautosensor)[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: loadedProjectsRaw took 1772.228083ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: cleanEvalClasses took 1.441002ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.loadUnit(file:/home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/, ...) took 2264.906142ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: load took 2266.165807ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: resolveProjects took 0.134221ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: finalTransforms took 23.32999ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: config.delegates took 0.420976ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: Def.make(settings)... took 58.680454ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: structureIndex took 23.35826ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: mkStreams took 0.00303ms[0m
+[0m[[0m[0minfo[0m] [0m[0mset current project to danmakuAutoSensor (in build file:/home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/)[0m
+[0m[[0m[33mwarn[0m] [0m[0mthere's a key that's not used by any other settings/tasks:[0m
+[0m[[0m[33mwarn[0m] [0m[0m [0m
+[0m[[0m[33mwarn[0m] [0m[0m* danmakuautosensor / idePackagePrefix[0m
+[0m[[0m[33mwarn[0m] [0m[0m  +- /home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/build.sbt:7[0m
+[0m[[0m[33mwarn[0m] [0m[0m [0m
+[0m[[0m[33mwarn[0m] [0m[0mnote: a setting might still be used by a command; to exclude a key from this `lintUnused` check[0m
+[0m[[0m[33mwarn[0m] [0m[0meither append it to `Global / excludeLintKeys` or call .withRank(KeyRanks.Invisible) on the key[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(sbtPopOnFailure, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(resumeFromFailure, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(notifyUsersAboutShell, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(iflast shell, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(; set ideaPort in Global := 43053 ; idea-shell, None, None)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(set ideaPort in Global := 43053, None, None)[0m
+[0m[[0m[0minfo[0m] [0m[0mDefining Global / ideaPort[0m
+[0m[[0m[0minfo[0m] [0m[0mThe new value will be used by Compile / compile, Test / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0mDefining [0m
+[0m[[0m[0mdebug[0m] [0m[0m	Global / ideaPort[0m
+[0m[[0m[0mdebug[0m] [0m[0m[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe new value will be used by [0m
+[0m[[0m[0mdebug[0m] [0m[0m	Compile / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0m	Test / compile[0m
+[0m[[0m[0minfo[0m] [0m[0mReapplying settings...[0m
+[0m[[0m[0minfo[0m] [0m[0mset current project to danmakuAutoSensor (in build file:/home/panda2134/Documents/DanmakuIt/danmakuAutoSensor/)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m

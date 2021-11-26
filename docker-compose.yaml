@@ -4,23 +4,23 @@ services:
   controller:
     image: controller
     build:
-      context: controller_image
+      context: docker/build/controller
       dockerfile: Dockerfile
     entrypoint: ['bash', 'controller_entrypoint.sh']
     volumes:
       - ./private_key:/private_key
       - ./public_key:/public_key
       - ./token:/token
-      - ./controller/app.py:/workspace/app.py
-      - ./controller/keys_create.py:/workspace/keys_create.py
-      - ./entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
+      - ./src/controller/app.py:/workspace/app.py
+      - ./src/controller/keys_create.py:/workspace/keys_create.py
+      - ./docker/entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
     networks:
       - intra
   
   pulsar:
     image: pulsar # with aiohttp for functions worker
     build:
-      context: pulsar_image
+      context: docker/build/pulsar
       dockerfile: Dockerfile
     entrypoint: ['bash', 'pulsar_entrypoint.sh']
     volumes:
@@ -32,9 +32,9 @@ services:
       - ./conf/broker.conf:/pulsar/conf/broker.conf # only for further deployment
       - ./conf/client.conf:/pulsar/conf/client.conf
       - ./conf/functions_worker.yml:/pulsar/conf/functions_worker.yml
-      - ./tagger/tagger.py:/pulsar/tagger.py
-      - ./entrypoint/pulsar_entrypoint.sh:/pulsar/pulsar_entrypoint.sh
-      - ./entrypoint/functions_create.sh:/pulsar/functions_create.sh
+      - ./src/tagger/tagger.py:/pulsar/tagger.py
+      - ./docker/entrypoint/pulsar_entrypoint.sh:/pulsar/pulsar_entrypoint.sh
+      - ./docker/entrypoint/functions_create.sh:/pulsar/functions_create.sh
       - ./logs:/pulsar/logs
     networks:
       - intra
