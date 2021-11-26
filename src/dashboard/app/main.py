@@ -23,10 +23,10 @@ app.mount('/static', StaticFiles(directory='static'), name='callback_test')
 app.add_middleware(SessionMiddleware, secret_key=app_config.session_secret)
 if app_config.debug:
     import devtools
+
     devtools.debug('Running in debug mode!')
     app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True,
-                   allow_methods=['*'], allow_headers=['*'])
-
+                       allow_methods=['*'], allow_headers=['*'])
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000)
