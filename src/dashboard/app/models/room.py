@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 
 class RoomCreation(BaseModel):
@@ -7,6 +7,7 @@ class RoomCreation(BaseModel):
 
 
 class Room(RoomCreation):
+    _id: Any # should be ObjectId from motor, but pydantic cannot handle that
     uid: str
     danmaku_enabled: bool = Field(True)
     room_id: str
