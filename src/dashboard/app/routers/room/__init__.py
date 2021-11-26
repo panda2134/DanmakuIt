@@ -1,27 +1,18 @@
-from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.config import app_config
-from app.models.room import Room, RoomCreation, RoomUpdate
+from app.models.room import Room, RoomCreation, RoomUpdate, make_room
 from app.db import db
 from app.models.user import User
-from app.utils import generate_passcode
 from app.utils.jwt import get_current_user
-from app.utils.room import generate_room_credentials
 
 router = APIRouter(tags=['room'])
 
 
 @router.post('/', response_model=Room)
 async def create_room(room: RoomCreation, user: User = Depends(get_current_user)):
-    room_id, room_passcode = await generate_room_credentials()
-    room = Room(uid=user.uid, name=room.name,
-                room_id=room_id,
-                room_passcode=room_passcode,
-                creation_time=datetime.utcnow(),
-                wechat_token=generate_passcode(app_config.room.wechat_token_length))
+    room = await make_room(room, user)
     await db['room'].insert_one(room.dict())
     # TODO: push room data to pulsar
     return room
@@ -52,7 +43,6 @@ async def modify_room(room: RoomUpdate, q: dict = Depends(get_room_query_from_ro
     if res.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     # TODO: push room data to pulsar
-    import devtools
     return await db['room'].find_one(q)
 
 
