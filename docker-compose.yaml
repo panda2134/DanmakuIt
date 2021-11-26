@@ -44,7 +44,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8000:8000"
+      - "9000:8000"
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
     depends_on:
