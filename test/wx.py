@@ -1,6 +1,6 @@
 import asyncio
 import json
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from tqdm import tqdm
 
 data = """
@@ -19,40 +19,39 @@ data_not_pass = """
 """
 
 perf_test = False
-set_state = False
+set_state = True
 censor = True
 
-domain = 'http://localhost:8000' # 'https://se-srv.panda2134.site'
+domain = 'http://localhost:8000'  # 'https://se-srv.panda2134.site'
+
 
 async def main():
-    async with ClientSession() as session:
+    async with AsyncClient() as client:
         if perf_test:
             for _ in tqdm(range(100)):
-                async with session.post(f'{domain}/room/3/port',
-                                        data=data,
-                                        headers={'Content-Type': 'application/xml'}) as resp:
-                    pass
+                await client.post(f'{domain}/room/3/port',
+                                  data=data,
+                                  headers={'Content-Type': 'application/xml'})
 
         if set_state:
-            async with session.post(f'{domain}/setting/3', data=json.dumps({'remote_censor': censor})) as resp:
-                print(await resp.text())
-                await asyncio.sleep(3)
-        
-        async with session.post(f'{domain}/room/3') as resp:
-                print(await resp.text())
+            resp = await client.post(f'{domain}/setting/3', data=json.dumps({'remote_censor': censor}))
+            print(resp.text)
+            await asyncio.sleep(3)
 
-        async with session.get(f'{domain}/setting/3') as resp:
-                print(await resp.text())
+        resp = await client.post(f'{domain}/room/3')
+        print(resp.text)
 
-        async with session.post(f'{domain}/room/3/port',
-                                data=data_not_pass,
-                                headers={'Content-Type': 'application/xml'}) as resp:
-            print(await resp.text())
+        resp = await client.get(f'{domain}/setting/3')
+        print(resp.text)
 
-        async with session.post(f'{domain}/room/3/port',
-                                data=data,
-                                headers={'Content-Type': 'application/xml'}) as resp:
-            print(await resp.text())
+        resp = await client.post(f'{domain}/room/3/port',
+                                 data=data,
+                                 headers={'Content-Type': 'application/xml'})
+        print(resp.text)
+        resp = await client.post(f'{domain}/room/3/port',
+                                 data=data_not_pass,
+                                 headers={'Content-Type': 'application/xml'})
+        print(resp.text)
 
 if __name__ == '__main__':
     if type(asyncio.get_event_loop_policy()) == asyncio.WindowsProactorEventLoopPolicy:
