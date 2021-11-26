@@ -1,7 +1,10 @@
 from typing import List
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 
+from app.config import app_config
 from app.models.room import Room, RoomCreation, RoomUpdate, make_room
 from app.db import db
 from app.models.user import User
@@ -14,7 +17,21 @@ router = APIRouter(tags=['room'])
 async def create_room(room: RoomCreation, user: User = Depends(get_current_user)):
     room = await make_room(room, user)
     await db['room'].insert_one(room.dict())
-    # TODO: push room data to pulsar
+
+    if not app_config.debug:
+        try:
+            with httpx.AsyncClient() as client:
+                client: httpx.AsyncClient
+                create_res = await client.post(app_config.controller_url + f'/room/{room.room_id}')
+                create_res.raise_for_status()
+                update_res = await client.post(app_config.controller_url + f'/setting/{room.room_id}',
+                                               json=jsonable_encoder(room))
+                update_res.raise_for_status()
+        except httpx.HTTPError:
+            await db['room'].delete_many(room.dict()) # rollback
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail='Failed to notify pulsar on room creation.')
+
     return room
 
 
@@ -42,8 +59,19 @@ async def modify_room(room: RoomUpdate, q: dict = Depends(get_room_query_from_ro
     res = await db['room'].update_one(q, {'$set': update_data})
     if res.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    # TODO: push room data to pulsar
-    return await db['room'].find_one(q)
+    room = Room.parse_obj(db['room'].find_one(q))
+
+    if not app_config.debug:
+        try:
+            with httpx.AsyncClient() as client:
+                client: httpx.AsyncClient
+                update_res = await client.post(app_config.controller_url + f'/setting/{room.room_id}',
+                                               json=jsonable_encoder(room))
+                update_res.raise_for_status()
+        except httpx.HTTPError:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail='Failed to notify pulsar on room update.')
+    return room
 
 
 @router.delete('/{room_id}', response_model=Room)
