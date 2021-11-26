@@ -3,13 +3,14 @@ import datetime
 from pydantic import BaseSettings, Field, AnyUrl, HttpUrl
 
 
+
 class SocialLoginSettings(BaseSettings):
     class WeChatLoginSettings(BaseSettings):
         appid: str = Field('wechat-appid', env='WECHAT_APPID')
         secret: str = Field('wechat-secret', env='WECHAT_SECRET')
 
     class GitLabLoginSettings(BaseSettings):
-        base_url: HttpUrl = Field('https://gitlab.com')
+        base_url: str = 'https://gitlab.com'
         appid: str = Field('gitlab-appid')
         secret: str = Field('gitlab-secret')
 
@@ -45,7 +46,7 @@ class Settings(BaseSettings):
     mongo_db_name: str = 'danmakuit'
     room = RoomSettings()
     session_secret = Field('***REMOVED***', env='SESSION_SECRET')
-    room_number_secret = Field('486b0f76b2a165173a0c83cf82f5dafa', env='ROOM_NUMBER_SECRET')
+    passcode_salt = Field('486b0f76b2a165173a0c83cf82f5dafa', env='ROOM_NUMBER_SECRET')
 
 
 app_config = Settings()
