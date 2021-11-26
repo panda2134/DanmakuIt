@@ -35,8 +35,8 @@ class SocialLoginSettings(BaseSettings):
 
 class RoomSettings(BaseSettings):
     danmaku_wall_prefix: HttpUrl = Field('http://127.0.0.1:3000/wall/')
-    room_passcode_length: int = Field(6)
-    wechat_token_length: int = Field(12)
+    room_passcode_length: int = Field(6, ge=6, le=16)
+    wechat_token_length: int = Field(12, ge=8, le=16)
 
 
 class Settings(BaseSettings):
@@ -46,7 +46,8 @@ class Settings(BaseSettings):
     mongo_db_name: str = 'danmakuit'
     room = RoomSettings()
     session_secret = Field('***REMOVED***', env='SESSION_SECRET')
-    passcode_salt = Field('486b0f76b2a165173a0c83cf82f5dafa', env='ROOM_NUMBER_SECRET')
+    room_passcode_salt = Field('b03f48507082262537fe82934ee04d4d', env='ROOM_PASSCODE_SECRET')
+    wechat_passcode_salt = Field('486b0f76b2a165173a0c83cf82f5dafa', env='WECHAT_PASSCODE_SECRET')
 
 
 app_config = Settings()
