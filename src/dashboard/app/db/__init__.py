@@ -6,30 +6,37 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import app_config
 
+
 class MongoCollectionInterface(ABC):
     @abstractmethod
-    async def insert_one(self, document, bypass_document_validation=False, session=None) -> InsertOneResult:
+    async def insert_one(self, document: Mapping, bypass_document_validation=False, session=None) -> InsertOneResult:
         pass
 
     @abstractmethod
-    async def update_one(self, filter, update, upsert=False,
+    async def update_one(self, filter: Mapping, update: Mapping, upsert=False,
                          bypass_document_validation=False, collation=None,
                          array_filters=None, hint=None, session=None) -> UpdateResult:
         pass
 
     @abstractmethod
-    async def delete_one(self, filter, collation=None, hint=None, session=None) -> DeleteResult:
+    async def delete_one(self, filter: Mapping, collation=None, hint=None, session=None) -> DeleteResult:
         pass
 
     @abstractmethod
-    async def find_one_and_update(self, filter, update, projection=None, sort=None, upsert=False,
+    async def replace_one(self, filter: Mapping, replacement: Mapping, upsert=False,
+                          bypass_document_validation=False, collation=None,
+                          hint=None, session=None) -> UpdateResult:
+        pass
+
+    @abstractmethod
+    async def find_one_and_update(self, filter: Mapping, update: Mapping, projection=None, sort=None, upsert=False,
                                   return_document=ReturnDocument.BEFORE,
                                   array_filters=None, hint=None, session=None,
                                   **kwargs) -> Optional[Mapping]:
         pass
 
     @abstractmethod
-    def find(self, filter: Union[Mapping, None], projection: Union[Sequence, Mapping] = None, *args, **kwargs)\
+    def find(self, filter: Optional[Mapping], projection: Union[Sequence, Mapping] = None, *args, **kwargs)\
             -> "MongoCursorInterface":
         pass
 
@@ -38,7 +45,7 @@ class MongoCollectionInterface(ABC):
         pass
 
     @abstractmethod
-    async def count_documents(self, filter: Union[Mapping, str, None], session=None, **kwargs) -> int:
+    async def count_documents(self, filter: Mapping, session=None, **kwargs) -> int:
         pass
 
 
