@@ -43,9 +43,10 @@ class Settings(BaseSettings):
     debug: bool = Field(False, env='DEBUG')
     social_login = SocialLoginSettings()
     mongo_url: AnyUrl = Field('mongodb://localhost:27017')
-    controller_url: HttpUrl = Field('http://localhost:9000')
+    controller_url: AnyUrl = Field('http://localhost:9000')
     mongo_db_name: str = 'danmakuit'
     room = RoomSettings()
+    pulsar_enabled = True
     session_secret = Field('729b4532d811a1122f61ddc7bfe9711d', env='SESSION_SECRET')
 
 

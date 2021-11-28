@@ -6,6 +6,9 @@ from datetime import datetime
 class RoomCreation(BaseModel):
     name: str
 
+class RoomDeletal(BaseModel):
+    room_id: str
+
 
 class Room(RoomCreation):
     _id: Any # should be ObjectId from motor, but pydantic cannot handle that
