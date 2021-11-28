@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     room = RoomSettings()
     pulsar_enabled = True
     session_secret = Field('***REMOVED***', env='SESSION_SECRET')
+    max_rollback_retry = 10
 
 
 app_config = Settings()

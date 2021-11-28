@@ -18,6 +18,7 @@ class Room(RoomCreation):
     creation_time: datetime
     remote_censor: bool = Field(True)
     keyword_blacklist: List[str] = Field([])
+    pulsar_token: str
     wechat_token: str
     wechat_encrypted: bool = Field(False)
     wechat_encryption_key: Optional[str]
