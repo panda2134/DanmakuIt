@@ -1,12 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Mapping, Optional, Sequence,  Union
-from pymongo import DESCENDING, ASCENDING
 from pymongo.results import InsertOneResult, UpdateResult, DeleteResult
 from pymongo.collection import ReturnDocument
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import app_config
-
 
 class MongoCollectionInterface(ABC):
     @abstractmethod
@@ -31,7 +29,8 @@ class MongoCollectionInterface(ABC):
         pass
 
     @abstractmethod
-    def find(self, filter: Union[Mapping, None], projection: Union[Sequence, Mapping], *args, **kwargs) -> "MongoCursorInterface":
+    def find(self, filter: Union[Mapping, None], projection: Union[Sequence, Mapping] = None, *args, **kwargs)\
+            -> "MongoCursorInterface":
         pass
 
     @abstractmethod
@@ -41,7 +40,7 @@ class MongoCollectionInterface(ABC):
 
 class MongoCursorInterface(ABC):
     @abstractmethod
-    async def to_list(self) -> Sequence[Mapping]:
+    async def to_list(self, length=None) -> Sequence[Mapping]:
         pass
 
     @abstractmethod
@@ -49,6 +48,7 @@ class MongoCursorInterface(ABC):
         pass
 
 
-db = AsyncIOMotorClient(app_config.mongo_url)[app_config.mongo_db_name]
+db_client = AsyncIOMotorClient(app_config.mongo_url)
+db = db_client[app_config.mongo_db_name]
 
 room_collection: MongoCollectionInterface = db['room']
