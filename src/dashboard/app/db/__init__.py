@@ -37,6 +37,10 @@ class MongoCollectionInterface(ABC):
     async def find_one(self, filter: Union[Mapping, str, None], *args, **kwargs) -> Optional[Mapping]:
         pass
 
+    @abstractmethod
+    async def count_documents(self, filter: Union[Mapping, str, None], session=None, **kwargs) -> int:
+        pass
+
 
 class MongoCursorInterface(ABC):
     @abstractmethod

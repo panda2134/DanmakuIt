@@ -98,6 +98,8 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
 
 @router.delete('/{room_id}', response_model=RoomDeletal)
 async def delete_room(room_id: str, room_query: dict = Depends(room_query_from_id)):
+    if not await room_collection.count_documents(room_query):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     res = await room_collection.delete_one(room_query)
     if res.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
