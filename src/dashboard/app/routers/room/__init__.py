@@ -80,8 +80,8 @@ async def list_room(user: User = Depends(get_current_user)):
     return room_docs
 
 
-def room_query_from_id(room_id: str):
-    return {'room_id': room_id}
+def room_query_from_id(room_id: str, user: User = Depends(get_current_user)):
+    return {'room_id': room_id, 'uid': user.uid}
 
 
 @router.get('/{room_id}', response_model=Room)
@@ -131,8 +131,9 @@ room_passcode_scheme = HTTPBearer()
 
 @router.get('/{room_id}/client-login', response_model=Room,
             description='`pulsar_jwt` is then used for pulsar connection')
-async def client_login_room(passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme),
-                            room_query: dict = Depends(room_query_from_id)):
+async def client_login_room(room_id: str,
+                            passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
+    room_query = {'room_id': room_id}
     if not await room_collection.count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     room = Room.parse_obj(await room_collection.find_one(room_query))
