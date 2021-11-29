@@ -49,6 +49,6 @@ class Settings(BaseSettings):
     pulsar_enabled = True
     session_secret = Field('729b4532d811a1122f61ddc7bfe9711d', env='SESSION_SECRET')
     max_rollback_retry = 10
-
+    wechat_token_salt: bytes = Field(b'd5ac4c0bdb1c95e80205fd0291cccf2d', env='WECHAT_SALT')
 
 app_config = Settings()

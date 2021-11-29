@@ -24,7 +24,7 @@ app = FastAPI(
 
 @app.on_event('shutdown')
 async def on_shutdown():
-    await httpClient.aclose()
+    await http_client.aclose()
 
 app.include_router(router)
 app.add_middleware(SessionMiddleware, secret_key=app_config.session_secret)
