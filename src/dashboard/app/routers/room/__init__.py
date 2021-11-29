@@ -1,5 +1,3 @@
-import hashlib
-import hmac
 import secrets
 from typing import Any, Callable, Coroutine, Sequence
 
@@ -141,10 +139,10 @@ async def client_login_room(room_id: str,
     room = Room.parse_obj(await room_collection.find_one(room_query))
 
     # here, we use compare_digest to avoid timing attack.
-    # please refer to https://docs.python.org/zh-cn/3/library/hmac.html#hmac.compare_digest
+    # please refer to https://docs.python.org/zh-cn/3/library/secrets.html#secrets.compare_digest
     # note that passcode has to be stored in plain text, since it shall be displayed on the frontend.
 
-    if not hmac.compare_digest(room.room_passcode, passcode.credentials):
+    if not secrets.compare_digest(room.room_passcode, passcode.credentials):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid room passcode.')
 
     return room
