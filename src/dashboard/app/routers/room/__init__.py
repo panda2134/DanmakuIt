@@ -48,8 +48,8 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     pulsar_jwt = resp.text
     # -1 to skip paddings in base64
     wechat_token = readable_sha256(room_id.encode() +
-                                   app_config.wechat_token_salt)[-app_config.room.wechat_token_length-1:-1]
-    room_passcode = readable_sha256(secrets.token_bytes(32))[-app_config.room.room_passcode_length-1:-1]
+                                   app_config.wechat_token_salt)[:app_config.room.wechat_token_length]
+    room_passcode = readable_sha256(secrets.token_bytes(32))[:app_config.room.room_passcode_length]
     room = Room(uid=user.uid, name=room.name,
                 room_id=room_id,
                 creation_time=datetime.utcnow(),
