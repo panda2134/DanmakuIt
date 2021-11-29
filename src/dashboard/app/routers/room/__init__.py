@@ -80,12 +80,14 @@ async def list_room(user: User = Depends(get_current_user)):
     return room_docs
 
 
-def room_query_from_id(room_id: str, user: User = Depends(get_current_user)):
+def room_query_from_id_after_auth(room_id: str, user: User = Depends(get_current_user)):
+    """Authenticate the user, and then construct the query object for the given room.
+    """
     return {'room_id': room_id, 'uid': user.uid}
 
 
 @router.get('/{room_id}', response_model=Room)
-async def get_room(room_query: dict = Depends(room_query_from_id)):
+async def get_room(room_query: dict = Depends(room_query_from_id_after_auth)):
     doc = await room_collection.find_one(room_query)
     if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
@@ -93,7 +95,7 @@ async def get_room(room_query: dict = Depends(room_query_from_id)):
 
 
 @router.patch('/{room_id}', response_model=Room, description="uid, room_id and creation_time cannot be altered")
-async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_query_from_id)):
+async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_query_from_id_after_auth)):
     update_dict = room.dict(exclude_unset=True)
     origin_room = await room_collection.find_one_and_update(room_query, {'$set': update_dict})
     if origin_room is None:
@@ -115,7 +117,7 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
 
 
 @router.delete('/{room_id}', response_model=RoomDeletal)
-async def delete_room(room_id: str, room_query: dict = Depends(room_query_from_id)):
+async def delete_room(room_id: str, room_query: dict = Depends(room_query_from_id_after_auth)):
     if not await room_collection.count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     res = await room_collection.delete_one(room_query)
