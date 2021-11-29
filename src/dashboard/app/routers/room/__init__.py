@@ -133,10 +133,10 @@ room_passcode_scheme = HTTPBearer()
             description='`pulsar_jwt` is then used for pulsar connection')
 async def client_login_room(room_id: str,
                             passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
-    room_query = {'room_id': room_id}
-    if not await room_collection.count_documents(room_query, limit=1):
+    doc = await room_collection.find_one({'room_id': room_id})
+    if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    room = Room.parse_obj(await room_collection.find_one(room_query))
+    room = Room.parse_obj(doc)
 
     # here, we use compare_digest to avoid timing attack.
     # please refer to https://docs.python.org/zh-cn/3/library/secrets.html#secrets.compare_digest
