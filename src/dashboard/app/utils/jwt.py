@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPBasicCredentials, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 
 from app.config import app_config

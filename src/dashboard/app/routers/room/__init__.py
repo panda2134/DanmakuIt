@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import secrets
 from typing import Any, Callable, Coroutine, Sequence
 
 import asyncio
@@ -5,6 +8,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.models.room import Room, RoomCreation, RoomUpdate, RoomDeletal
 from app.models.user import User
@@ -16,15 +20,13 @@ from pymongo import DESCENDING
 from app.db import room_collection
 from app.http_client import http_client
 
-
 router = APIRouter(tags=['room'])
-
-salt = b'place_holder'  # TODO: allow admin regenerate salt without restart sever
 
 
 def notify_controller_on_update(room_id: str, room: Room):
     return http_client.post(f'{app_config.controller_url}/setting/{room_id}',
                             json=jsonable_encoder(room))
+
 
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
     for i in range(app_config.max_rollback_retry):
@@ -40,26 +42,35 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     room_id = generate_room_id()
     resp = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot create the room in controller.')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='Cannot create the room in controller.')
 
-    pulsar_token = resp.text
+    pulsar_jwt = resp.text
+    # -1 to skip paddings in base64
+    wechat_token = readable_sha256(room_id.encode() +
+                                   app_config.wechat_token_salt)[-app_config.room.wechat_token_length-1:-1]
+    room_passcode = readable_sha256(secrets.token_bytes(32))[-app_config.room.room_passcode_length-1:-1]
     room = Room(uid=user.uid, name=room.name,
                 room_id=room_id,
                 creation_time=datetime.utcnow(),
-                pulsar_token=pulsar_token,
-                wechat_token=readable_sha256(room_id.encode() + salt))
+                pulsar_jwt=pulsar_jwt,
+                room_passcode=room_passcode,
+                wechat_token=wechat_token)
     try:
         insert_result = await room_collection.insert_one(room.dict())
     except:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot create the room in database.')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='Cannot create the room in database.')
     resp = await notify_controller_on_update(room_id, room)
     if not resp.is_success:
         async def rollback_op():
             delete_result = await room_collection.delete_one({'_id': insert_result.inserted_id})
             return bool(delete_result.deleted_count == 1)
+
         await rollback(rollback_op)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot initialize setting the room in controller.')
-    
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='Cannot initialize setting the room in controller.')
+
     return room
 
 
@@ -92,11 +103,14 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
     resp = await notify_controller_on_update(room_id, updated_room)
     if not resp.is_success:
         _id = origin_room['_id']
+
         async def rollback_op():
             replace_result = await room_collection.replace_one({'_id': _id}, origin_room)
             return bool(replace_result.modified_count == 1)
+
         await rollback(rollback_op)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot modify setting the room in controller.')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='Cannot modify setting the room in controller.')
     return updated_room
 
 
@@ -110,3 +124,24 @@ async def delete_room(room_id: str, room_query: dict = Depends(room_query_from_i
 
     # TODO: push deletion of room to pulsar
     return {'room_id': room_id}
+
+
+room_passcode_scheme = HTTPBearer()
+
+
+@router.get('/{room_id}/client-login', response_model=Room,
+            description='`pulsar_jwt` is then used for pulsar connection')
+async def client_login_room(passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme),
+                            room_query: dict = Depends(room_query_from_id)):
+    if not await room_collection.count_documents(room_query, limit=1):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+    room = Room.parse_obj(await room_collection.find_one(room_query))
+
+    # here, we use compare_digest to avoid timing attack.
+    # please refer to https://docs.python.org/zh-cn/3/library/hmac.html#hmac.compare_digest
+    # note that passcode has to be stored in plain text, since it shall be displayed on the frontend.
+
+    if not hmac.compare_digest(room.room_passcode, passcode.credentials):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid room passcode.')
+
+    return room
