@@ -50,8 +50,8 @@ async def room_post(request: Request, room: str):
     return text(token)
 
 
-@app.post('/room/<room:str>/port')  # wechat send danmaku
-async def room_port_post(request: Request, room: str):
+@app.post('/port/<room:str>')  # wechat send danmaku
+async def port_post(request: Request, room: str):
     root = ElementTree.fromstring(request.body)
     data: Mapping[str, str] = {el.tag: el.text for el in root}
     content = data.get('Content', '')
@@ -88,8 +88,8 @@ def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/
     return b2a_base64(sha256(binary).digest(), newline=False).translate(readable_char_table).decode()
 
 
-@app.get('/room/<room:str>/port')  # wechat access
-async def room_port_get(request: Request, room: str):
+@app.get('/port/<room:str>')  # wechat access
+async def port_get(request: Request, room: str):
     token = readable_sha256(room.encode() + salt)
     query = request.get_args()
     timestamp = query.get('timestamp', '')

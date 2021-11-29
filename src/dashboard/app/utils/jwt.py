@@ -2,11 +2,11 @@ from datetime import datetime
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
+import jwt
 
 from app.config import app_config
 from app.models.user import User
-from app.db import db
+from app.db import get_db
 
 
 def create_jwt(user: User):
@@ -19,13 +19,13 @@ def create_jwt(user: User):
 bearer_scheme = HTTPBearer()
 
 
-async def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> User:
+async def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme), db = Depends(get_db)) -> User:
     try:
         payload = jwt.decode(token.credentials, app_config.social_login.jwt_secret,
                              algorithms=[app_config.social_login.jwt_algorithm])
         user = await db['user'].find_one({'connect_uid': payload['sub']})
         if user is None: raise ValueError('User not found')
-    except (JWTError, ValueError):
+    except (jwt.InvalidSignatureError, jwt.InvalidTokenError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Invalid JWT token.',

@@ -15,7 +15,7 @@ from app.utils.room import generate_room_id, readable_sha256
 
 from app.config import app_config
 from pymongo import DESCENDING
-from app.db import room_collection
+from app.db import get_db
 from app.http_client import http_client
 
 router = APIRouter(tags=['room'])
@@ -36,7 +36,7 @@ async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
 
 
 @router.post('/', response_model=Room)
-async def create_room(room: RoomCreation, user: User = Depends(get_current_user)):
+async def create_room(room: RoomCreation, user: User = Depends(get_current_user), db = Depends(get_db)):
     room_id = generate_room_id()
     resp = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
@@ -55,14 +55,14 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
                 room_passcode=room_passcode,
                 wechat_token=wechat_token)
     try:
-        insert_result = await room_collection.insert_one(room.dict())
+        insert_result = await db['room'].insert_one(room.dict())
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot create the room in database.')
     resp = await notify_controller_on_update(room_id, room)
     if not resp.is_success:
         async def rollback_op():
-            delete_result = await room_collection.delete_one({'_id': insert_result.inserted_id})
+            delete_result = await db['room'].delete_one({'_id': insert_result.inserted_id})
             return bool(delete_result.deleted_count == 1)
 
         await rollback(rollback_op)
@@ -73,8 +73,8 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
 
 
 @router.get('/', response_model=Sequence[Room], response_description="last 100 created rooms")
-async def list_room(user: User = Depends(get_current_user)):
-    room_docs = await room_collection.find({'uid': user.uid}).sort('creation_time', DESCENDING).to_list(100)
+async def list_room(user: User = Depends(get_current_user), db = Depends(get_db)):
+    room_docs = await db['room'].find({'uid': user.uid}).sort('creation_time', DESCENDING).to_list(100)
     return room_docs
 
 
@@ -85,17 +85,17 @@ def room_query_from_id_after_auth(room_id: str, user: User = Depends(get_current
 
 
 @router.get('/{room_id}', response_model=Room)
-async def get_room(room_query: dict = Depends(room_query_from_id_after_auth)):
-    doc = await room_collection.find_one(room_query)
+async def get_room(room_query: dict = Depends(room_query_from_id_after_auth), db = Depends(get_db)):
+    doc = await db['room'].find_one(room_query)
     if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     return doc
 
 
 @router.patch('/{room_id}', response_model=Room, description="uid, room_id and creation_time cannot be altered")
-async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_query_from_id_after_auth)):
+async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_query_from_id_after_auth), db = Depends(get_db)):
     update_dict = room.dict(exclude_unset=True)
-    origin_room = await room_collection.find_one_and_update(room_query, {'$set': update_dict})
+    origin_room = await db['room'].find_one_and_update(room_query, {'$set': update_dict})
     if origin_room is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     updated_room = Room.parse_obj(dict(origin_room, **update_dict))
@@ -105,7 +105,7 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
         _id = origin_room['_id']
 
         async def rollback_op():
-            replace_result = await room_collection.replace_one({'_id': _id}, origin_room)
+            replace_result = await db['room'].replace_one({'_id': _id}, origin_room)
             return bool(replace_result.modified_count == 1)
 
         await rollback(rollback_op)
@@ -115,10 +115,10 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
 
 
 @router.delete('/{room_id}', response_model=RoomDeletal)
-async def delete_room(room_id: str, room_query: dict = Depends(room_query_from_id_after_auth)):
-    if not await room_collection.count_documents(room_query, limit=1):
+async def delete_room(room_id: str, room_query: dict = Depends(room_query_from_id_after_auth), db = Depends(get_db)):
+    if not await db['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    res = await room_collection.delete_one(room_query)
+    res = await db['room'].delete_one(room_query)
     if res.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
 
@@ -131,9 +131,9 @@ room_passcode_scheme = HTTPBearer()
 
 @router.get('/{room_id}/client-login', response_model=Room,
             description='`pulsar_jwt` is then used for pulsar connection')
-async def client_login_room(room_id: str,
+async def client_login_room(room_id: str, db = Depends(get_db),
                             passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
-    doc = await room_collection.find_one({'room_id': room_id})
+    doc = await db['room'].find_one({'room_id': room_id})
     if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     room = Room.parse_obj(doc)

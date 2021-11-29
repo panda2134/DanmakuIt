@@ -2,13 +2,15 @@ from typing import Optional, List, Dict
 from urllib.parse import quote_from_bytes
 
 from fastapi import APIRouter, HTTPException, status
+from fastapi.param_functions import Depends
 from pydantic import BaseModel, ValidationError
-from app.db import db
 import httpx
 from app.config import app_config
 from app.models.user import User
 from app.routers.user.social_login.response import TokenResponse
 from app.utils.jwt import create_jwt
+
+from app.db import get_db
 
 router = APIRouter()
 
@@ -44,7 +46,7 @@ async def get_from_wechat_api(client: httpx.AsyncClient, url: str, params: Optio
 
 
 @router.get('/wechat', status_code=307, response_description='redirect to frontend')
-async def connect_to_wechat(code: str):
+async def connect_to_wechat(code: str, db = Depends(get_db)):
     # check with wechat server
     async with httpx.AsyncClient() as client:
 

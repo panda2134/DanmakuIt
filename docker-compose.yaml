@@ -1,6 +1,5 @@
 version: '3.9'
 services:
-  # TODO: reverse proxy
   controller:
     image: controller
     build:
@@ -14,11 +13,14 @@ services:
       - ./src/controller/app.py:/workspace/app.py
       - ./src/controller/keys_create.py:/workspace/keys_create.py
       - ./docker/entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
+    expose: # nop, documentation only
+      - "8000"
     networks:
       - intra
+      - web
   
   pulsar:
-    image: pulsar # with aiohttp for functions worker
+    image: pulsar # with httpx for functions worker
     build:
       context: docker/build/pulsar
       dockerfile: Dockerfile
@@ -36,26 +38,63 @@ services:
       - ./docker/entrypoint/pulsar_entrypoint.sh:/pulsar/pulsar_entrypoint.sh
       - ./docker/entrypoint/functions_create.sh:/pulsar/functions_create.sh
       - ./logs:/pulsar/logs
+    expose: # nop, documentation only
+      - "6650"
+      - "8080"
     networks:
       - intra
+      - web
     depends_on:
       - controller
+  
+  dashboard:
+    image: dashboard
+    build:
+      context: docker/build/dashboard
+      dockerfile: Dockerfile
+    entrypoint: ['bash', 'dashboard_entrypoint.sh']
+    environment:
+      DEBUG: True
+    volumes:
+      - ./src/dashboard:/workspace/dashboard
+      - ./docker/entrypoint/dashboard_entrypoint.sh:/workspace/dashboard_entrypoint.sh
+    depends_on:
+      - mongo
+    networks:
+      - intra
+      - web
+
+  mongo:
+    image: mongo:5.0.4
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodata:/data/db
+    expose: # nop, documentation only
+      - "27017"
+    networks:
+      - intra
 
   nginx:
     image: nginx:alpine
     ports:
-      - "9000:8000"
+      - "8000:8000"
     volumes:
       - ./conf/nginx:/etc/nginx/conf.d
     depends_on:
       - controller
       - pulsar
+      - dashboard
     networks:
-      - intra
+      - web
 
 volumes: 
   pulsardata: {}
   pulsarconf: {}
+  mongodata: {}
 networks:
   intra:
+    driver: bridge
+  web:
     driver: bridge
