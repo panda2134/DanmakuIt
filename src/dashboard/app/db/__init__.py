@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Mapping, Optional, Sequence,  Union
 from pymongo.results import InsertOneResult, UpdateResult, DeleteResult
 from pymongo.collection import ReturnDocument
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
 
 from app.config import app_config
 
@@ -58,8 +58,11 @@ class MongoCursorInterface(ABC):
     def sort(self, key_or_list, direction=None) -> "MongoCursorInterface":
         pass
 
+db_client = None
 
-db_client = AsyncIOMotorClient(app_config.mongo_url)
-db = db_client[app_config.mongo_db_name]
-
-room_collection: MongoCollectionInterface = db['room']
+async def get_db() -> Mapping[str, MongoCollectionInterface]:
+    global db_client
+    if db_client is None:
+        db_client = AsyncIOMotorClient(app_config.mongo_uri)
+    db = db_client[app_config.mongo_db_name]
+    return db

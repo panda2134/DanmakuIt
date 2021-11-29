@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 
 from pydantic import BaseSettings, Field, AnyUrl, HttpUrl
 
@@ -27,6 +28,7 @@ class SocialLoginSettings(BaseSettings):
                                     appid='***REMOVED***',
                                     secret='***REMOVED***')
 
+    oauth_redirect_baseurl: AnyUrl = Field('http://localhost:8000', env='OAUTH_REDIRECT_BASE_URL')
     jwt_secret: str = Field('***REMOVED***', env='JWT_SECRET')
     jwt_algorithm: str = Field('HS256')
     jwt_token_age: datetime.timedelta = Field(datetime.timedelta(days=14))
@@ -42,8 +44,8 @@ class RoomSettings(BaseSettings):
 class Settings(BaseSettings):
     debug: bool = Field(False, env='DEBUG')
     social_login = SocialLoginSettings()
-    mongo_url: AnyUrl = Field('mongodb://localhost:27017')
-    controller_url: AnyUrl = Field('http://localhost:9000')
+    mongo_uri: AnyUrl = Field('mongodb://root:password@mongo:27017')
+    controller_url: AnyUrl = Field('http://controller:8000')
     mongo_db_name: str = 'danmakuit'
     room = RoomSettings()
     pulsar_enabled = True
