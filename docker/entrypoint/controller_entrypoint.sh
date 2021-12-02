@@ -5,4 +5,4 @@ else
     echo "create key pair."
     python keys_create.py
 fi
-python app.py
+exec python app.py
