@@ -4,7 +4,6 @@ import signal
 from threading import Thread
 from time import sleep
 
-from requests.models import HTTPBasicAuth
 from conf import room_id, room_passcode
 
 import websocket
@@ -47,8 +46,6 @@ domain = 'localhost:8000' # 'se-srv2.panda2134.site'
 
 
 if __name__ == '__main__':
-    # token = requests.post(f'http://{domain}/room/3').text
-    token: str
     response = requests.get(f'http://{domain}/room/{room_id}/client-login', auth=HTTPBearerAuth(room_passcode)).json()
     print('Response from client_login:', response)
     ws = websocket.WebSocketApp(
