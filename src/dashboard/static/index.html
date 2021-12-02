@@ -8,16 +8,18 @@
     <span>token is <span id="hint">not found</span></span>.
     <p>
     Back to
-    <a href="/docs">OpenAPI</a> or
-    <a href="/redoc">ReDoc</a>
+    <a href="/docs">OpenAPI</a>
     </p>
     <script>
         const hintElement = document.querySelector('#hint')
         const queryStr = location.search.substr(1)
         for (const [k, v] of new URLSearchParams(queryStr)) {
             if (k === 'token') {
-                hintElement.innerHTML = 'found and copied'
+                hintElement.innerHTML = 'found and copied; paste into Authorize field in OpenAPI'
                 navigator.clipboard.writeText(v)
+                setTimeout(() => {
+                    location.href = '/docs'
+                }, 1000)
             }
         }
     </script>

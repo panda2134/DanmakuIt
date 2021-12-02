@@ -4,6 +4,9 @@ import signal
 from threading import Thread
 from time import sleep
 
+from requests.models import HTTPBasicAuth
+from conf import room_id, room_passcode
+
 import websocket
 import requests
 
@@ -30,15 +33,26 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     print("### open ###")
 
+# https://stackoverflow.com/questions/29931671/making-an-api-call-in-python-with-an-api-that-requires-a-bearer-token
+class HTTPBearerAuth(requests.auth.AuthBase):
+    def __init__(self, token):
+        self.token = token
+    def __call__(self, r):
+        r.headers["authorization"] = "Bearer " + self.token
+        return r
+
 
 schema = 'ws'
 domain = 'localhost:8000' # 'se-srv2.panda2134.site'
 
+
 if __name__ == '__main__':
-    token = requests.post(f'http://{domain}/room/3').text
+    # token = requests.post(f'http://{domain}/room/3').text
+    token: str
+    response = requests.get(f'http://{domain}/room/{room_id}/client-login', auth=HTTPBearerAuth(room_passcode)).json()
+    print('Response from client_login:', response)
     ws = websocket.WebSocketApp(
-        f'{schema}://{domain}/websocket/consumer/persistent/public/default/3/sub?token={token}',
-        # header={'Authorization': 'Bearer ' + token},
+        f'{schema}://{domain}/websocket/consumer/persistent/public/default/{room_id}/sub?token={response["pulsar_jwt"]}',
         on_open=on_open,
         on_message=on_message,
         on_error=on_error,

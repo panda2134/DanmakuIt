@@ -125,9 +125,10 @@ async def setting_post(request: Request, room: str):
 
 
 @app.get('/setting/<room:str>')  # get room setting
-async def setting_post(request: Request, room: str):
+async def setting_get(request: Request, room: str):
     resp = await httpClient.get(f'http://pulsar:8080/admin/v3/functions/public/default/tagger/state/{room}', headers=super_user_headers)
     obj: Mapping[str, Union[str, int]] = resp.json()
+    print('Settings:', obj) # TODO: Remove debug log
     if 'stringValue' not in obj:
         return text('setting is not initialized', status=404)
     return text(obj['stringValue'])
