@@ -22,6 +22,6 @@ $ poetry install # run with python 3.9
 
 Click for a login test.
 
-- [GitHub](/user/social-login/github/login)
-- [GitLab](/user/social-login/gitlab/login)
-- [GitLab Tsinghua](/user/social-login/gitlab3rd/login)
+- <a target="_self" href="/user/social-login/github/login">GitHub</a>
+- <a target="_self" href="/user/social-login/gitlab/login">GitLab</a>
+- <a target="_self" href="/user/social-login/gitlab3rd/login">GitLabTsinghua</a> &lt; - 推荐用这个

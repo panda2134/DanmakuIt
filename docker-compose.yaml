@@ -15,9 +15,6 @@ services:
       - ./docker/entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
     expose: # nop, documentation only
       - "8000"
-    networks:
-      - intra
-      - web
   
   pulsar:
     image: pulsar # with httpx for functions worker
@@ -41,9 +38,6 @@ services:
     expose: # nop, documentation only
       - "6650"
       - "8080"
-    networks:
-      - intra
-      - web
     depends_on:
       - controller
   
@@ -60,9 +54,6 @@ services:
       - ./docker/entrypoint/dashboard_entrypoint.sh:/workspace/dashboard_entrypoint.sh
     depends_on:
       - mongo
-    networks:
-      - intra
-      - web
 
   mongo:
     image: mongo:5.0.4
@@ -73,8 +64,6 @@ services:
       - mongodata:/data/db
     expose: # nop, documentation only
       - "27017"
-    networks:
-      - intra
 
   nginx:
     image: nginx:alpine
@@ -86,15 +75,8 @@ services:
       - controller
       - pulsar
       - dashboard
-    networks:
-      - web
 
 volumes: 
   pulsardata: {}
   pulsarconf: {}
   mongodata: {}
-networks:
-  intra:
-    driver: bridge
-  web:
-    driver: bridge

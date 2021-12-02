@@ -130,7 +130,7 @@ room_passcode_scheme = HTTPBearer()
 
 
 @router.get('/{room_id}/client-login', response_model=Room,
-            description='`pulsar_jwt` is then used for pulsar connection')
+            description='Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection')
 async def client_login_room(room_id: str, db = Depends(get_db),
                             passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
     doc = await db['room'].find_one({'room_id': room_id})
