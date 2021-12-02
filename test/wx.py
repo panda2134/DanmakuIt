@@ -44,6 +44,6 @@ async def main():
         print(resp.text)
 
 if __name__ == '__main__':
-    if type(asyncio.get_event_loop_policy()) == asyncio.WindowsProactorEventLoopPolicy:
+    if type(asyncio.get_event_loop_policy()) == getattr(asyncio, 'WindowsProactorEventLoopPolicy', None):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
