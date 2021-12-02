@@ -4,9 +4,9 @@ import time
 import os
 import binascii
 import json
+import re
 
-
-from typing import Mapping, Optional
+from typing import Any, Mapping, Optional, Sequence
 
 from httpx import AsyncClient
 from pulsar import Function, Context, SerDe
@@ -41,6 +41,7 @@ class TaggingFunction(Function):
         asyncio.run_coroutine_threadsafe(self.fetch_access_token(), loop)  # infinite loop fetch access token
 
         self.state_cache: Mapping[str, dict] = {}
+        self.re_cache: Mapping[str, Sequence[re.Pattern]] = {}
 
     def __del__(self):
         asyncio.run_coroutine_threadsafe(self.httpClient.aclose(), self.loop).result()  # blocking
@@ -90,8 +91,8 @@ class TaggingFunction(Function):
         room = obj['room']
 
         room_state = self.state_cache.get(room, {})
-
-        permission = True  # TODO: room specific censor
+        patterns = self.re_cache.get(room, [])
+        permission = all(p.search(content) is None for p in patterns)
         if permission and room_state.get('remote_censor'):
             permission = await self.remote_censor(content)
 
@@ -113,20 +114,10 @@ class TaggingFunction(Function):
 
     def process(self, input: bytes, context: Context):
         if context.get_current_message_topic_name() == 'persistent://public/default/state':
-            arr = json.loads(input.decode())
-            room: str = arr[0]
-            method: str = arr[1]
-            if method == 'replace':
-                state_str: str = arr[2]
-                self.state_cache[room] = json.loads(state_str)
-                context.put_state(room, state_str)
-                return
-            if method == 'load':
-                state_str: str = context.get_state(room)
-                self.state_cache[room] = json.loads(state_str)
-                return
-            # invalid method!
-            print(arr)
+            room, state_str = json.loads(input.decode())
+            room_state: Mapping[str, Any] = json.loads(state_str)
+            self.state_cache[room] = {key: room_state[key] for key in ('remote_censor',)}
+            self.re_cache[room] = [re.compile('.*?'.join(list(keyword))) for keyword in room_state['keyword_blacklist']]
             return
 
         # WARNING: "current message" of context will be updated by main thread

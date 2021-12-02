@@ -118,7 +118,7 @@ async def setting_post(request: Request, room: str):
     def callback(res, msg_id): pass
 
     state_update_producer.send_async(
-        content=json.dumps([room, 'replace', state_binary.decode()]).encode(),
+        content=json.dumps([room, state_binary.decode()]).encode(),
         callback=callback
     )
     return text('success')
