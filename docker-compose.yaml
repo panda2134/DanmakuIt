@@ -6,6 +6,8 @@ services:
       context: docker/build/controller
       dockerfile: Dockerfile
     entrypoint: ['bash', 'controller_entrypoint.sh']
+    env_file:
+      - token.env
     volumes:
       - ./private_key:/private_key
       - ./public_key:/public_key
@@ -47,6 +49,8 @@ services:
       context: docker/build/dashboard
       dockerfile: Dockerfile
     entrypoint: ['bash', 'dashboard_entrypoint.sh']
+    env_file:
+      - token.env
     environment:
       DEBUG: True
     volumes:
