@@ -58,11 +58,11 @@ class MongoCursorInterface(ABC):
     def sort(self, key_or_list, direction=None) -> "MongoCursorInterface":
         pass
 
-db_client = None
+Database = Mapping[str, MongoCollectionInterface]
+db = None
 
-async def get_db() -> Mapping[str, MongoCollectionInterface]:
-    global db_client
-    if db_client is None:
-        db_client = AsyncIOMotorClient(app_config.mongo_uri)
-    db = db_client[app_config.mongo_db_name]
+async def get_db():
+    global db
+    if db is None:
+        db = AsyncIOMotorClient(app_config.mongo_uri)[app_config.mongo_db_name]
     return db
