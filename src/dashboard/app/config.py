@@ -38,7 +38,7 @@ class SocialLoginSettings(BaseSettings):
 class RoomSettings(BaseSettings):
     danmaku_wall_prefix: HttpUrl = Field('http://127.0.0.1:3000/wall/')
     room_passcode_length: int = Field(6, ge=6, le=16)
-    wechat_token_length: int = Field(12, ge=8, le=16)
+    wechat_token_length: int = Field(12, ge=8, le=16, env='WECHAT_TOKEN_LEN')
 
 
 class Settings(BaseSettings):
@@ -51,6 +51,6 @@ class Settings(BaseSettings):
     pulsar_enabled = True
     session_secret = Field('729b4532d811a1122f61ddc7bfe9711d', env='SESSION_SECRET')
     max_rollback_retry = 10
-    wechat_token_salt: bytes = Field(b'd5ac4c0bdb1c95e80205fd0291cccf2d', env='WECHAT_SALT')
+    wechat_token_salt: bytes = Field(..., env='WECHAT_TOKEN_SALT')
 
 app_config = Settings()

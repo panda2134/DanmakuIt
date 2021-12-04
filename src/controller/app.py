@@ -2,6 +2,7 @@ import json
 from hashlib import sha1, sha256
 from binascii import b2a_base64
 from xml.etree import ElementTree
+import os
 
 from typing import Mapping, Optional, Union
 
@@ -81,8 +82,8 @@ async def port_post(request: Request, room: str):
     )
     return text('success')
 
-salt = b'place_holder'  # TODO
-
+wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
+wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT')
 
 def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/=', b'LLLooXYZ')) -> str:
     return b2a_base64(sha256(binary).digest(), newline=False).translate(readable_char_table).decode()
@@ -90,7 +91,7 @@ def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/
 
 @app.get('/port/<room:str>')  # wechat access
 async def port_get(request: Request, room: str):
-    token = readable_sha256(room.encode() + salt)
+    token = readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]
     query = request.get_args()
     timestamp = query.get('timestamp', '')
     nonce = query.get('nonce', '')
