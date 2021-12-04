@@ -1,13 +1,10 @@
-from fastapi.params import Depends
 import httpx
 from authlib.integrations.starlette_client import StarletteRemoteApp
-from fastapi import APIRouter, HTTPException, status
-from motor.metaprogramming import Async
-from motor.motor_asyncio import AsyncIOMotorDatabase
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, HttpUrl
 from starlette.requests import Request
 
-from app.db import get_db
+from app.db import get_db, Database
 from .oauth import oauth
 from app.config import app_config
 from app.models.user import User
@@ -21,7 +18,7 @@ class GitLabV4User(BaseModel):
     id: int
     name: str
     username: str
-    avatar_url: str
+    avatar_url: HttpUrl
 
 
 @router.get('/gitlab/login')
@@ -38,7 +35,7 @@ async def login_gitlab_3rd_party(request: Request):
     return await gitlab.authorize_redirect(request, redirect_uri)
 
 
-async def get_user_from_gitlab_api(request: Request, db: AsyncIOMotorDatabase, client_name: str = 'gitlab') -> User:
+async def get_user_from_gitlab_api(request: Request, db: Database, client_name: str = 'gitlab') -> User:
     gitlab: StarletteRemoteApp = oauth.create_client(client_name)
     token = await gitlab.authorize_access_token(request)
     try:

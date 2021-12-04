@@ -1,8 +1,6 @@
 import struct
 import time
-import string
 import secrets
-from typing import Tuple
 from hashlib import sha256
 from binascii import b2a_base64
 
