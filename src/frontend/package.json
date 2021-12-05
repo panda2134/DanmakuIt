@@ -17,10 +17,13 @@
   "dependencies": {
     "@nuxtjs/axios": "^5.13.6",
     "core-js": "^3.15.1",
+    "nanoid": "^3.1.30",
     "nuxt": "^2.15.7",
     "openapi-typescript": "^4.4.0",
+    "reconnecting-websocket": "^4.4.0",
     "throttle-debounce": "^3.0.1",
-    "vuetify": "^2.5.5"
+    "vuetify": "^2.5.5",
+    "vuetify-toast-snackbar": "^0.6.1"
   },
   "devDependencies": {
     "@ava/babel": "^1.0.1",
