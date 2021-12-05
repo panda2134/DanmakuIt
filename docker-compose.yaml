@@ -52,7 +52,7 @@ services:
     env_file:
       - token.env
     environment:
-      DEBUG: True
+      DEBUG: 1
     volumes:
       - ./src/dashboard:/workspace/dashboard
       - ./docker/entrypoint/dashboard_entrypoint.sh:/workspace/dashboard_entrypoint.sh
