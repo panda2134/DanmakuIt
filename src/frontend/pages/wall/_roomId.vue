@@ -22,8 +22,12 @@
           light
           tile
         >
-          <h3 class="danmaku--user">{{ danmaku.sender }}</h3>
-          <div class="danmaku--content">{{ danmaku.content }}</div>
+          <h3 class="danmaku--user">
+            {{ danmaku.sender }}
+          </h3>
+          <div class="danmaku--content">
+            {{ danmaku.content }}
+          </div>
         </v-sheet>
       </transition-group>
     </div>
