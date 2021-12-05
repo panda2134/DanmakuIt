@@ -83,7 +83,7 @@ async def port_post(request: Request, room: str):
     return text('success')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
-wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT')
+wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
 
 def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/=', b'LLLooXYZ')) -> str:
     return b2a_base64(sha256(binary).digest(), newline=False).translate(readable_char_table).decode()
