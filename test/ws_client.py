@@ -42,7 +42,7 @@ class HTTPBearerAuth(requests.auth.AuthBase):
 
 
 schema = 'ws'
-domain = 'localhost:8000' # 'se-srv2.panda2134.site'
+domain = 'http://82.156.115.62:8000' # 'localhost:8000' # 'se-srv2.panda2134.site'
 
 
 if __name__ == '__main__':
