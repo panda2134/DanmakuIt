@@ -22,7 +22,7 @@ export default {
       this.error = true
       setTimeout(() => { this.$router.push('/') }, 1000)
     } else {
-      localStorage.setItem('jwt', token)
+      this.$axios.setToken(token, 'Bearer')
       this.$router.push('/')
     }
   }
