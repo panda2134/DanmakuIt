@@ -20,7 +20,7 @@ data_not_pass = """
 
 perf_test = False
 
-domain = 'http://localhost:8000'  # 'https://se-srv.panda2134.site'
+domain = 'https://danmakuit.panda2134.site'  # 'https://se-srv.panda2134.site'
 
 
 async def main():
