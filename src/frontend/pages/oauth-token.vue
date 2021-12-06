@@ -23,6 +23,7 @@ export default {
       setTimeout(() => { this.$router.push('/') }, 1000)
     } else {
       this.$axios.setToken(token, 'Bearer')
+      console.log('Token:', token)
       this.$router.push('/')
     }
   }

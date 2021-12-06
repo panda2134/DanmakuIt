@@ -20,8 +20,8 @@ $ poetry install # run with python 3.9
 
 ## 登录
 
-Click for a login test.
+登陆后 Token 在剪贴板。
 
-- <a target="_self" href="/api/v1/user/social-login/github/login">GitHub</a>
-- <a target="_self" href="/api/v1/user/social-login/gitlab/login">GitLab</a>
-- <a target="_self" href="/api/v1/user/social-login/gitlab3rd/login">GitLabTsinghua</a> &lt; - 推荐用这个
+<!-- - <a target="_self" href="/api/v1/user/social-login/github/login">GitHub</a>
+- <a target="_self" href="/api/v1/user/social-login/gitlab/login">GitLab</a> -->
+<a target="_self" href="/api/v1/user/social-login/gitlab3rd/login">GitLabTsinghua Login</a>
