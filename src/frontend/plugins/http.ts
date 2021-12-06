@@ -28,7 +28,7 @@ type APIType = {
                             & APIPatchType<paths[urlPath]> & APIPostType<paths[urlPath]>;
 }
 
-function getAPI ({ $axios }: Context): APIType {
+function getAPI ({ $axios, $config }: Context): APIType {
   return {
     '/user/me': {
       get: () => $axios.$get('/user/me')
@@ -38,19 +38,19 @@ function getAPI ({ $axios }: Context): APIType {
     },
     '/user/social-login/github/login': {
       // eslint-disable-next-line require-await
-      async get () { location.href = '/user/social-login/github/login' }
+      async get () { location.href = $config.axios.browserBaseURL + '/user/social-login/github/login' }
     },
     '/user/social-login/gitlab/auth': {
       get: () => { throw new Error('Not implemented') }
     },
     '/user/social-login/gitlab/login': {
-      get () { location.href = '/user/social-login/gitlab/login'; return Promise.resolve() }
+      get () { location.href = $config.axios.browserBaseURL + '/user/social-login/gitlab/login'; return Promise.resolve() }
     },
     '/user/social-login/gitlab3rd/auth': {
       get: () => { throw new Error('Not implemented') }
     },
     '/user/social-login/gitlab3rd/login': {
-      get () { location.href = '/user/social-login/gitlab3rd/login'; return Promise.resolve() }
+      get () { location.href = $config.axios.browserBaseURL + '/user/social-login/gitlab3rd/login'; return Promise.resolve() }
     },
     '/user/social-login/wechat': {
       get: () => { throw new Error('Not implemented') }
