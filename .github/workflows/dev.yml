@@ -18,7 +18,7 @@ jobs:
           ssh-keyscan 152.136.181.192 > ~/.ssh/known_hosts
       - name: Fetch the repository on dev machine
         run: |
-          ssh root@152.136.181.192 "cd /srv/DanmakuIt && git reset --hard HEAD && git pull --force && git checkout $GITHUB_SHA"
+          ssh root@152.136.181.192 "cd /srv/DanmakuIt && git stash && git reset --hard HEAD && git pull --force && git checkout $GITHUB_SHA && git stash clear"
       - name: Rebuild
         run: |
           ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose build"
