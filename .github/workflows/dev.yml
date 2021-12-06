@@ -24,4 +24,4 @@ jobs:
           ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose build"
       - name: Fire up the new server # build again in case of previous error...
         run: |
-          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose down && docker-compose up -d"
+          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose down -t 30 && docker-compose up -d"
