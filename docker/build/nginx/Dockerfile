@@ -1,4 +1,4 @@
-FROM node:17-alpine AS buildStage
+FROM node:16-alpine AS buildStage
 WORKDIR /workspace/
 COPY src/frontend/yarn.lock .
 COPY src/frontend/package.json .
