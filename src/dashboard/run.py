@@ -22,7 +22,7 @@ app = FastAPI(
     description=description,
     root_path="/api/v1",
     servers=[
-        {"url": "https://danmakuit.panda2134.site/", "description": "Development server"},
+        {"url": "https://danmakuit.panda2134.site/api/v1", "description": "Development server"},
     ],
 )
 

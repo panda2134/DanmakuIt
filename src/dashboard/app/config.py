@@ -28,7 +28,7 @@ class SocialLoginSettings(BaseSettings):
                                     appid='***REMOVED***',
                                     secret='***REMOVED***')
 
-    oauth_redirect_baseurl: AnyUrl = Field('http://localhost:8000', env='OAUTH_REDIRECT_BASE_URL')
+    oauth_redirect_baseurl: AnyUrl = Field('https://danmakuit.panda2134.site/api/v1/', env='OAUTH_REDIRECT_BASE_URL')
     jwt_secret: str = Field('***REMOVED***', env='JWT_SECRET')
     jwt_algorithm: str = Field('HS256')
     jwt_token_age: datetime.timedelta = Field(datetime.timedelta(days=14))
