@@ -15,6 +15,7 @@ motor = "^2.5.1"
 Authlib = "^0.15.5"
 PyJWT = "^2.3.0"
 cryptography = "^36.0.0"
+arq = "^0.22"
 
 [tool.poetry.dev-dependencies]
 devtools = "^0.8.0"
