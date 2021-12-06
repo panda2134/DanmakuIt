@@ -95,8 +95,7 @@ async def port_post(request: Request, room: str):
     <MsgType><![CDATA[text]]></MsgType>
     <Content><![CDATA[{reply_message}]]></Content>
 </xml>'''
-    print(response_xml)
-    return text(response_xml, content_type='text/xml')
+    return text(response_xml, content_type='application/xml')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
