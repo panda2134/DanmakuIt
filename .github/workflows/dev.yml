@@ -16,8 +16,6 @@ jobs:
       - name: Add to known hosts
         run: |
           ssh-keyscan 152.136.181.192 > ~/.ssh/known_hosts
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - name: Fetch the repository on dev machine
         run: |
           ssh root@152.136.181.192 "cd /srv/DanmakuIt && git fetch --all && git reset --hard origin/master"
@@ -26,4 +24,4 @@ jobs:
           ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose build"
       - name: Fire up the new server # build again in case of previous error...
         run: |
-          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose down && docker-compose up --build"
+          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose down && docker-compose up -d"
