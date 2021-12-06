@@ -71,8 +71,8 @@ services:
 
   nginx:
     build:
-      context: docker/build/nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/build/nginx/Dockerfile
     ports:
       - "8000:8000"
     depends_on:
