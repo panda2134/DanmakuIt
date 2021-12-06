@@ -1,0 +1,3 @@
+[submodule "src/DanmaKuItDesktop"]
+	path = src/DanmaKuItDesktop
+	url = git@github.com:MoebiusMeow/DanmaKuItDesktop.git
