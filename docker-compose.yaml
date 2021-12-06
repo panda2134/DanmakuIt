@@ -70,11 +70,11 @@ services:
       - "27017"
 
   nginx:
-    image: nginx:alpine
+    build:
+      context: docker/build/nginx
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./conf/nginx:/etc/nginx/conf.d
     depends_on:
       - controller
       - pulsar
