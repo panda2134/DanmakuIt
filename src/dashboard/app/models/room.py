@@ -23,6 +23,9 @@ class Room(RoomCreation):
     wechat_token: str
     wechat_encrypted: bool = Field(False)
     wechat_encryption_key: Optional[str]
+    wechat_appid: Optional[str]
+    wechat_appsecret: Optional[str]
+    wechat_access_token: Optional[str]
 
 
 class RoomUpdate(BaseModel):
@@ -33,3 +36,6 @@ class RoomUpdate(BaseModel):
     wechat_token: Optional[str]
     wechat_encrypted: Optional[bool] = Field(False)
     wechat_encryption_key: Optional[str]
+    wechat_appid: Optional[str]
+    wechat_appsecret: Optional[str]
+    wechat_access_token: Optional[str]

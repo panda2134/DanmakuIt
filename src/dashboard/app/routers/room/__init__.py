@@ -3,10 +3,12 @@ from typing import Any, Callable, Coroutine, Sequence
 
 import asyncio
 from datetime import datetime
+from arq.connections import ArqRedis
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.bgtasks import get_bg_queue
 
 from app.models.room import Room, RoomCreation, RoomUpdate, RoomDeletal
 from app.models.user import User
@@ -93,7 +95,8 @@ async def get_room(room_query: dict = Depends(room_with_auth), db: Database = De
 
 
 @router.patch('/{room_id}', response_model=Room, description="uid, room_id and creation_time cannot be altered")
-async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_with_auth), db: Database = Depends(get_db)):
+async def modify_room(room: RoomUpdate, room_id: str,
+        room_query: dict = Depends(room_with_auth), db: Database = Depends(get_db), bg_queue: ArqRedis = Depends(get_bg_queue)):
     update_dict = room.dict(exclude_unset=True)
     origin_room = await db['room'].find_one_and_update(room_query, {'$set': update_dict})
     if origin_room is None:
@@ -111,6 +114,8 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
         await rollback(rollback_op)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot modify setting the room in controller.')
+    if room.wechat_appid is not None or room.wechat_appsecret is not None: # appid or appsecret is updated
+        bg_queue.enqueue_job('refresh_wechat_access_token_room', updated_room)
     return updated_room
 
 
