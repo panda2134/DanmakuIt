@@ -32,7 +32,7 @@ class SocialLoginSettings(BaseSettings):
     jwt_secret: str = Field('***REMOVED***', env='JWT_SECRET')
     jwt_algorithm: str = Field('HS256')
     jwt_token_age: datetime.timedelta = Field(datetime.timedelta(days=14))
-    jwt_redirect_path: str = '/static/index.html' # jwt will be appended as query string
+    jwt_redirect_path: str = '/oauth-token' # jwt will be appended as query string
 
 
 class RoomSettings(BaseSettings):
