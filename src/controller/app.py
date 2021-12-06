@@ -57,7 +57,8 @@ async def port_post(request: Request, room: str):
     data: Mapping[str, str] = {el.tag: el.text for el in root}
     content = data.get('Content', '')
     message_type = data.get('MsgType', 'text')
-    sender = 'user_' + data.get('FromUserName', '')
+    from_user = data.get('FromUserName', '')
+    sender = 'user_' + from_user
     developer_account = data.get('ToUserName', '')
     create_time = data.get('CreateTime', 0)
 
@@ -89,13 +90,13 @@ async def port_post(request: Request, room: str):
         reply_message = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
     
     response_xml = f'''<xml>
-    <ToUserName><![CDATA[{sender}]]></ToUserName>
+    <ToUserName><![CDATA[{from_user}]]></ToUserName>
     <FromUserName><![CDATA[{developer_account}]]></FromUserName>
     <CreateTime>{create_time}</CreateTime>
     <MsgType><![CDATA[text]]></MsgType>
     <Content><![CDATA[{reply_message}]]></Content>
 </xml>'''
-    return text(response_xml, content_type='application/xml')
+    return text(response_xml, content_type='text/xml')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
