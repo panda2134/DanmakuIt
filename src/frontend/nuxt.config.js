@@ -58,7 +58,7 @@ export default {
 
   publicRuntimeConfig: {
     axios: {
-      browserBaseURL: process.env.BROWSER_BASE_URL || 'https://danmakuit.panda2134.site'
+      browserBaseURL: process.env.BROWSER_BASE_URL || 'https://danmakuit.panda2134.site/api/v1/'
     }
   },
 

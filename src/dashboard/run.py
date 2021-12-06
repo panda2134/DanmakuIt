@@ -19,8 +19,13 @@ with readme_file.open('r') as f:
 
 app = FastAPI(
     title='DanmakuItPanel',
-    description=description
+    description=description,
+    root_path="/api/v1",
+    servers=[
+        {"url": "https://danmakuit.panda2134.site/", "description": "Development server"},
+    ],
 )
+
 
 @app.on_event('shutdown')
 async def on_shutdown():
