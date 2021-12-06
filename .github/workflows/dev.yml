@@ -1,0 +1,38 @@
+name: Deploy to development server
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Grab the deploy secret key
+        env:
+          id_ed25519: ${{ secrets.DEPLOY_ROOT_PRIVATE_KEY }}
+        run: |
+          mkdir ~/.ssh
+          echo $id_ed25519 | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+      - name: Add to known hosts
+        run: |
+          echo > ~/.ssh/known_hosts <<EOF
+          172.105.240.197 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqvXt4dUcolBxAiwHnXpjlBOC38p8Un01L6Eg1ulcrA
+          172.105.240.197 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDzM00ijh2nmutJdLXttQdGYjm4sTYeYP5FQoML+AKMzpJUMsn3nLnrffBLYZQY+YYr8Jv0cUTh4/Ce3bQLjezr3NnTU9St+RqvAqValHb64HRN4XlR21KA9fZYpWTl3F3GZM6U1DF6PnoIkXxsYVmrtXQvs4dXIJr+5THsf/EnkVmAg9kxnGutp3lWX/KCtmuPWqKgz/a7jZ8GlpdZvGiBr+aFqtOcngvpRrGSp8mUqDp0e+KBCefd7ThH7C/Azv4SY1pBaaPgR/FmOxzjo/jJc1FcPP4J/xeviTMM/F5cuSa9e2iwwQoFzh8s+RnB7ZNnFmd02yniXkGv8rmYwmV7
+          172.105.240.197 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEEqAlaovPN81LNFUup7W4MZUkXkeelZNSWbBbsLwJckHu0EKlnM44ITI9pjnNp6CJpgTbR3vfaqIqDUB+PDosw=
+          EOF
+          chmod 600 ~/.ssh/known_hosts
+          echo > ~/.ssh/config <<EOF
+          Host *
+            HashKnownHosts no
+          EOF
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+      - name: Fetch the repository on dev machine
+        run: |
+          ssh root@152.136.181.192 "cd /srv/DanmakuIt && git fetch --all && git reset --hard origin/master"
+      - name: Rebuild
+        run: |
+          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose build"
+      - name: Fire up the new server # build again in case of previous error...
+        run: |
+          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose down && docker-compose up --build"
