@@ -58,7 +58,7 @@ async def port_post(request: Request, room: str):
     content = data.get('Content', '')
     message_type = data.get('MsgType', 'text')
     from_user = data.get('FromUserName', '')
-    sender = 'user_' + from_user
+    sender = 'user@wechat:' + from_user  # add user@wechat: prefix; client should strip this before getting the avatar
     developer_account = data.get('ToUserName', '')
     create_time = data.get('CreateTime', 0)
 
@@ -89,7 +89,8 @@ async def port_post(request: Request, room: str):
     else:
         reply_message = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
     
-    response_xml = f'''<xml>
+    response_xml = \
+f'''<xml>
     <ToUserName><![CDATA[{from_user}]]></ToUserName>
     <FromUserName><![CDATA[{developer_account}]]></FromUserName>
     <CreateTime>{create_time}</CreateTime>
