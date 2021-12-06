@@ -56,31 +56,47 @@ async def port_post(request: Request, room: str):
     root = ElementTree.fromstring(request.body)
     data: Mapping[str, str] = {el.tag: el.text for el in root}
     content = data.get('Content', '')
+    message_type = data.get('MsgType', 'text')
     sender = 'user_' + data.get('FromUserName', '')
+    developer_account = data.get('ToUserName', '')
+    create_time = data.get('CreateTime', 0)
 
-    global raw_producer
-    if raw_producer is None:
-        raw_producer = pulsar_client.create_producer(
-            'persistent://public/default/raw',
-            block_if_queue_full=True,
-            batching_enabled=True,
-            batching_max_publish_delay_ms=10
+    if message_type == 'text' and content != '【收到不支持的消息类型，暂无法显示】':
+        global raw_producer
+        if raw_producer is None:
+            raw_producer = pulsar_client.create_producer(
+                'persistent://public/default/raw',
+                block_if_queue_full=True,
+                batching_enabled=True,
+                batching_max_publish_delay_ms=10
+            )
+
+        def callback(res, msg_id): pass
+
+        raw_producer.send_async(
+            content=json.dumps(
+                dict(
+                    content=content,
+                    sender=sender,
+                    room=room,
+                ),
+                ensure_ascii=False
+            ).encode(),
+            callback=callback
         )
-
-    def callback(res, msg_id): pass
-
-    raw_producer.send_async(
-        content=json.dumps(
-            dict(
-                content=content,
-                sender=sender,
-                room=room,
-            ),
-            ensure_ascii=False
-        ).encode(),
-        callback=callback
-    )
-    return text('success')
+        reply_message = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
+    else:
+        reply_message = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
+    
+    return text(f'''<xml>
+                <ToUserName><![CDATA[{sender}]]></ToUserName>
+                <FromUserName><![CDATA[{developer_account}]]></FromUserName>
+                <CreateTime>{create_time}</CreateTime>
+                <MsgType><![CDATA[text]]></MsgType>
+                <Content><![CDATA[{reply_message}]]></Content>
+                </xml>
+                ''',
+            content_type='text/xml')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
