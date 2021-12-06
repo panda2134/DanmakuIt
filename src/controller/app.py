@@ -88,15 +88,15 @@ async def port_post(request: Request, room: str):
     else:
         reply_message = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
     
-    return text(f'''<xml>
-                <ToUserName><![CDATA[{sender}]]></ToUserName>
-                <FromUserName><![CDATA[{developer_account}]]></FromUserName>
-                <CreateTime>{create_time}</CreateTime>
-                <MsgType><![CDATA[text]]></MsgType>
-                <Content><![CDATA[{reply_message}]]></Content>
-                </xml>
-                ''',
-            content_type='text/xml')
+    response_xml = f'''<xml>
+    <ToUserName><![CDATA[{sender}]]></ToUserName>
+    <FromUserName><![CDATA[{developer_account}]]></FromUserName>
+    <CreateTime>{create_time}</CreateTime>
+    <MsgType><![CDATA[text]]></MsgType>
+    <Content><![CDATA[{reply_message}]]></Content>
+</xml>'''
+    print(response_xml)
+    return text(response_xml, content_type='text/xml')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
