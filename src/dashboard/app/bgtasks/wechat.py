@@ -27,7 +27,7 @@ async def refresh_all_wechat_access_token(_: Mapping[str, Any]):
             logger.info(f'Room {room.room_id} has no WeChat appid / appsecret, skipped')
             continue  # skip this room
         logger.info(f'Room {room.room_id} queued for access_token refresh')
-        bg_queue.enqueue_job('refresh_wechat_access_token_room', room)
+        await bg_queue.enqueue_job('refresh_wechat_access_token_room', room)
 
 
 async def refresh_wechat_access_token_room(_: Mapping[str, Any], room: Room):
