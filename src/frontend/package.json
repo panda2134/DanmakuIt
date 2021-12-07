@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "nuxt",
-    "build": "nuxt build",
+    "build": "NUXT_ENV_GIT_SHA=`git rev-parse --short HEAD` nuxt build",
     "start": "nuxt start",
-    "generate": "nuxt generate",
+    "generate": "NUXT_ENV_GIT_SHA=`git rev-parse --short HEAD` nuxt generate",
     "lint:js": "eslint --ext \".js,.vue\" --ignore-path .gitignore .",
     "lint": "yarn lint:js",
     "test": "yarn test:unit && yarn test:e2e",
