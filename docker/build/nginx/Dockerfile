@@ -1,4 +1,6 @@
 FROM node:16-alpine AS buildStage
+ARG GITHUB_SHA
+ENV GITHUB_SHA ${GITHUB_SHA}
 WORKDIR /workspace/
 COPY src/frontend/yarn.lock .
 COPY src/frontend/package.json .

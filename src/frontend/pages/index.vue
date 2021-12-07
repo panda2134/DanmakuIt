@@ -56,7 +56,7 @@ export default {
   layout: 'fullpage',
   data () {
     return {
-      commitSHA: process.env.NUXT_ENV_GIT_SHA || '#dev#'
+      commitSHA: process.env.GITHUB_SHA || '#dev#'
     }
   }
 }
