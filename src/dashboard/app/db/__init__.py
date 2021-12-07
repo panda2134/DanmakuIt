@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Mapping, Optional, Sequence, Union, AsyncIterable
 from pymongo.results import InsertOneResult, UpdateResult, DeleteResult
 from pymongo.collection import ReturnDocument
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import app_config
-
+from app.utils import async_cache
 
 class MongoCollectionInterface(ABC):
     @abstractmethod
@@ -60,13 +60,6 @@ class MongoCursorInterface(AsyncIterable):
 
 Database = Mapping[str, MongoCollectionInterface]
 
-def _():
-    db: Optional[Database] = None
-    async def get_db():
-        nonlocal db
-        if db is None:
-            db: Database = AsyncIOMotorClient(app_config.mongo_uri)[app_config.mongo_db_name]
-        return db
-    return get_db
-get_db = _()
-_ = None
+@async_cache
+async def get_db() -> Database:
+    return AsyncIOMotorClient(app_config.mongo_uri)[app_config.mongo_db_name]
