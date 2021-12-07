@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): await enqueue in appid/appsecret update">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routers/room/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routers/room/__init__.py" afterDir="false" />
-    </list>
+    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): wechat access_token params" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,7 +30,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1638862096720</updated>
-      <workItem from="1638862098029" duration="1121000" />
+      <workItem from="1638862098029" duration="1470000" />
     </task>
     <task id="LOCAL-00001" summary="fix: wechat access token bgtasks">
       <created>1638862342966</created>
@@ -50,7 +46,21 @@
       <option name="project" value="LOCAL" />
       <updated>1638863219030</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="fix(dashboard): mongo call in bgtasks">
+      <created>1638863282368</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1638863282368</updated>
+    </task>
+    <task id="LOCAL-00004" summary="fix(dashboard): wechat access_token params">
+      <created>1638863508259</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1638863508259</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -70,6 +80,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix: wechat access token bgtasks" />
     <MESSAGE value="fix(dashboard): await enqueue in appid/appsecret update" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(dashboard): await enqueue in appid/appsecret update" />
+    <MESSAGE value="fix(dashboard): mongo call in bgtasks" />
+    <MESSAGE value="fix(dashboard): wechat access_token params" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(dashboard): wechat access_token params" />
   </component>
 </project>
