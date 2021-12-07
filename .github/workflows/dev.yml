@@ -22,6 +22,8 @@ jobs:
       - name: Fetch the repository on dev machine
         run: |
           ssh root@152.136.181.192 "cd /srv/DanmakuIt && git fetch --all && git reset --hard origin/master && git checkout $GITHUB_SHA"
+      - name: Write GitHub SHA
+        run: ssh root@152.136.181.192 "cd /srv/DanmakuIt && echo GITHUB_SHA=$GITHUB_SHA >> misc.env"
       - name: Rebuild
         run: |
           ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose build"

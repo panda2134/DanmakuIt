@@ -77,6 +77,8 @@ services:
     build:
       context: .
       dockerfile: docker/build/nginx/Dockerfile
+      args:
+        GITHUB_SHA: ${GITHUB_SHA:-UNKNOWN}
     ports:
       - "8000:8000"
     depends_on:
