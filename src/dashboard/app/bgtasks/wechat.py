@@ -53,5 +53,5 @@ async def refresh_wechat_access_token_room(_: Mapping[str, Any], room: Room):
                            + f'{room.room_id}: {resp_obj}')
     reply = WeChatAccessTokenReply.parse_obj(resp_obj)
     await db.update_one({'room_id': room.room_id},
-                        {'wechat_access_token': reply.access_token})
+                        {'$set': {'wechat_access_token': reply.access_token}})
     logger.info(f'Room {room.room_id} access_token refreshed')
