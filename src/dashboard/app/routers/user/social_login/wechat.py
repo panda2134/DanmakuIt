@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict
 from urllib.parse import quote_from_bytes
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ValidationError
 import httpx
 from app.config import app_config
@@ -9,7 +9,7 @@ from app.models.user import User
 from app.routers.user.social_login.response import TokenResponse
 from app.utils.jwt import create_jwt
 
-from app.db import get_db, Database
+from app.db import get_db
 
 router = APIRouter()
 
@@ -45,7 +45,7 @@ async def get_from_wechat_api(client: httpx.AsyncClient, url: str, params: Optio
 
 
 @router.get('/wechat', status_code=307, response_description='redirect to frontend')
-async def connect_to_wechat(code: str, db: Database = Depends(get_db)):
+async def connect_to_wechat(code: str):
     # check with wechat server
     async with httpx.AsyncClient() as client:
 
@@ -89,7 +89,7 @@ async def connect_to_wechat(code: str, db: Database = Depends(get_db)):
     user_model = User(uid=f'wechat:{user_info.unionid}',
                       username=user_info.nickname,
                       avatar=avatar)
-    await db['user'].update_one(
+    await get_db()['user'].update_one(
         dict(connect_uid=user_model.uid),
         {'$set': user_model.dict()},
         upsert=True
