@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): use $set in access token update func" />
+    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): await in access_token batch update" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -30,7 +30,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1638862096720</updated>
-      <workItem from="1638862098029" duration="1998000" />
+      <workItem from="1638862098029" duration="2674000" />
     </task>
     <task id="LOCAL-00001" summary="fix: wechat access token bgtasks">
       <created>1638862342966</created>
@@ -67,7 +67,14 @@
       <option name="project" value="LOCAL" />
       <updated>1638863808234</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="fix(dashboard): await in access_token batch update">
+      <created>1638864171162</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1638864171162</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -90,6 +97,7 @@
     <MESSAGE value="fix(dashboard): mongo call in bgtasks" />
     <MESSAGE value="fix(dashboard): wechat access_token params" />
     <MESSAGE value="fix(dashboard): use $set in access token update func" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(dashboard): use $set in access token update func" />
+    <MESSAGE value="fix(dashboard): await in access_token batch update" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(dashboard): await in access_token batch update" />
   </component>
 </project>

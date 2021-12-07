@@ -1,16 +1,20 @@
+import logging
 from logging import getLogger
 from typing import Mapping, Any
 
 import httpx
 from pydantic.main import BaseModel
 from app.bgtasks import get_bg_queue
+from app.routers.room import notify_controller_on_update
 from app.db import get_db, MongoCollectionInterface
 from app.models.room import Room, RoomUpdate
 from app.http_client import http_client
 from app.config import app_config
 from arq import Retry
 
+
 logger = getLogger('bgtasks').getChild('wechat')
+logger.setLevel(logging.INFO)
 
 
 class WeChatAccessTokenReply(BaseModel):
@@ -52,6 +56,9 @@ async def refresh_wechat_access_token_room(_: Mapping[str, Any], room: Room):
             raise KeyError('Error in access_token request for room '
                            + f'{room.room_id}: {resp_obj}')
     reply = WeChatAccessTokenReply.parse_obj(resp_obj)
+    room.wechat_access_token = reply.access_token
     await db.update_one({'room_id': room.room_id},
                         {'$set': {'wechat_access_token': reply.access_token}})
     logger.info(f'Room {room.room_id} access_token refreshed')
+    await notify_controller_on_update(room.room_id, room)
+    logger.info(f'Room {room.room_id} access_token pushed to controller')
