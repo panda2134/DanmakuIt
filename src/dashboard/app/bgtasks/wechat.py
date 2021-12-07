@@ -37,7 +37,7 @@ async def refresh_wechat_access_token_room(_: Mapping[str, Any], room: Room):
         params={
             'grant_type': 'client_credential',
             'appid': room.wechat_appid,
-            'appsecret': room.wechat_appsecret
+            'secret': room.wechat_appsecret
         })
     try:
         resp.raise_for_status()
