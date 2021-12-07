@@ -7,7 +7,7 @@ from pydantic.main import BaseModel
 from app.bgtasks import get_bg_queue
 from app.routers.room import notify_controller_on_update
 from app.db import get_db, MongoCollectionInterface
-from app.models.room import Room, RoomUpdate
+from app.models.room import Room
 from app.http_client import http_client
 from app.config import app_config
 from arq import Retry

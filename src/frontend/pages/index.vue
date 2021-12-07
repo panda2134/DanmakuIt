@@ -2,6 +2,7 @@
   <div>
     <v-container class="d-flex flex-column justify-center align-center" style="height: 100vh">
       <header class="d-flex flex-row align-center my-8">
+        <!--suppress CheckImageSize -->
         <img src="../assets/icon.png" height="160" width="160" alt="icon">
         <h1 class="ml-12">
           弹幕一下
@@ -45,14 +46,19 @@
       </div>
     </v-container>
     <v-footer fixed>
-      &copy; {{ new Date().getFullYear() }}, DanmakuIt Team. Licensed under GPLv3.
+      &copy; {{ new Date().getFullYear() }}, DanmakuIt Team. Licensed under GPLv3. Commit {{ commitSHA }}.
     </v-footer>
   </div>
 </template>
 
 <script>
 export default {
-  layout: 'fullpage'
+  layout: 'fullpage',
+  data () {
+    return {
+      commitSHA: process.env.NUXT_ENV_GIT_SHA || '#dev#'
+    }
+  }
 }
 </script>
 
