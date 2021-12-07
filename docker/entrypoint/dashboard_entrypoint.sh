@@ -1,2 +1,16 @@
+#!/bin/bash
+
 pip install ./dashboard -i https://pypi.tuna.tsinghua.edu.cn/simple --compile --no-cache-dir
-exec python dashboard/run.py
+
+set -m
+
+_term() { 
+  echo "SIGTERM"
+  killall python
+  exit 0
+}
+trap _term SIGTERM
+
+arq dashboard.worker.WorkerSettings &
+python dashboard/main.py
+wait
