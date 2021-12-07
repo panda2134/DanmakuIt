@@ -115,7 +115,7 @@ async def modify_room(room: RoomUpdate, room_id: str,
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot modify setting the room in controller.')
     if room.wechat_appid is not None or room.wechat_appsecret is not None: # appid or appsecret is updated
-        bg_queue.enqueue_job('refresh_wechat_access_token_room', updated_room)
+        await bg_queue.enqueue_job('refresh_wechat_access_token_room', updated_room)
     return updated_room
 
 
