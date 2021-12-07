@@ -5,7 +5,7 @@ from pymongo.collection import ReturnDocument
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import app_config
-from app.utils import async_cache
+from app.utils import sync_cache
 
 class MongoCollectionInterface(ABC):
     @abstractmethod
@@ -60,6 +60,6 @@ class MongoCursorInterface(AsyncIterable):
 
 Database = Mapping[str, MongoCollectionInterface]
 
-@async_cache
-async def get_db() -> Database:
+@sync_cache
+def get_db() -> Database:
     return AsyncIOMotorClient(app_config.mongo_uri)[app_config.mongo_db_name]

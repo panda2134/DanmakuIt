@@ -1,10 +1,10 @@
 import httpx
 from authlib.integrations.starlette_client import StarletteRemoteApp
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, HttpUrl
 from starlette.requests import Request
 
-from app.db import get_db, Database
+from app.db import get_db
 from .oauth import oauth
 from app.config import app_config
 from app.models.user import User
@@ -35,7 +35,7 @@ async def login_gitlab_3rd_party(request: Request):
     return await gitlab.authorize_redirect(request, redirect_uri)
 
 
-async def get_user_from_gitlab_api(request: Request, db: Database, client_name: str = 'gitlab') -> User:
+async def get_user_from_gitlab_api(request: Request, client_name: str = 'gitlab') -> User:
     gitlab: StarletteRemoteApp = oauth.create_client(client_name)
     token = await gitlab.authorize_access_token(request)
     try:
@@ -48,7 +48,7 @@ async def get_user_from_gitlab_api(request: Request, db: Database, client_name: 
     user_model = User(uid=f'{client_name}:{user.id}',
                       username=user.username,
                       avatar=user.avatar_url)
-    await db['user'].update_one(
+    await get_db()['user'].update_one(
         dict(connect_uid=user_model.uid),
         {'$set': user_model.dict()},
         upsert=True
@@ -57,13 +57,13 @@ async def get_user_from_gitlab_api(request: Request, db: Database, client_name: 
 
 
 @router.get('/gitlab/auth', status_code=307, response_description='redirect to frontend')
-async def auth_gitlab(request: Request, db = Depends(get_db)):
-    user_model = await get_user_from_gitlab_api(request, db, 'gitlab')
+async def auth_gitlab(request: Request):
+    user_model = await get_user_from_gitlab_api(request, 'gitlab')
     return TokenResponse(create_jwt(user_model))
 
 
 @router.get('/gitlab3rd/auth', status_code=307, response_description='redirect to frontend')
-async def auth_gitlab_3rd_party(request: Request, db = Depends(get_db)):
-    user_model = await get_user_from_gitlab_api(request, db, 'gitlab3rd')
+async def auth_gitlab_3rd_party(request: Request):
+    user_model = await get_user_from_gitlab_api(request, 'gitlab3rd')
     return TokenResponse(create_jwt(user_model))
 
