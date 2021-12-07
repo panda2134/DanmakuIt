@@ -1,16 +1,17 @@
 import json
 from hashlib import sha1, sha256
 from binascii import b2a_base64
+from time import time
 from xml.etree import ElementTree
 import os
 
-from typing import Mapping, Optional, Union
+from typing import Mapping, Optional
 
 from cryptography.hazmat.primitives import serialization
 import jwt
 
 from httpx import AsyncClient
-from sanic import Sanic, Request, text, json as objectNotation
+from sanic import Sanic, Request, text
 import pulsar
 
 with open('/private_key/private.key', 'rb') as f:
@@ -37,7 +38,7 @@ async def cleanup(*args, **kwargs):
     pulsar_client.close()
 
 
-@app.post('/room/<room:str>')  # creat room
+@app.post('/room/<room:str>')  # register room
 async def room_post(request: Request, room: str):
     resp = await httpClient.put(f'http://pulsar:8080/admin/v2/persistent/public/default/{room}', headers=super_user_headers)
     if resp.status_code not in {204, 409}:
@@ -50,6 +51,21 @@ async def room_post(request: Request, room: str):
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
     return text(token)
 
+@app.put('/setting/<room:str>')  # replace room setting
+async def settings_put(request: Request, room: str):
+    state_binary: bytes = request.body
+    global state_update_producer
+    if state_update_producer is None:
+        state_update_producer = pulsar_client.create_producer(
+            'persistent://public/default/state',
+            block_if_queue_full=True
+        )
+
+    state_update_producer.send_async(
+        content=json.dumps([room, state_binary.decode()]).encode(),
+        callback=lambda *_: None
+    )
+    return text('success')
 
 @app.post('/port/<room:str>')  # wechat send danmaku
 async def port_post(request: Request, room: str):
@@ -60,7 +76,6 @@ async def port_post(request: Request, room: str):
     from_user = data.get('FromUserName', '')
     sender = 'user@wechat:' + from_user  # add user@wechat: prefix; client should strip this before getting the avatar
     developer_account = data.get('ToUserName', '')
-    create_time = data.get('CreateTime', 0)
 
     if message_type == 'text' and content != '【收到不支持的消息类型，暂无法显示】':
         global raw_producer
@@ -72,8 +87,6 @@ async def port_post(request: Request, room: str):
                 batching_max_publish_delay_ms=10
             )
 
-        def callback(res, msg_id): pass
-
         raw_producer.send_async(
             content=json.dumps(
                 dict(
@@ -83,20 +96,21 @@ async def port_post(request: Request, room: str):
                 ),
                 ensure_ascii=False
             ).encode(),
-            callback=callback
+            callback=lambda *_: None
         )
         reply_message = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
     else:
         reply_message = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
     
-    response_xml = \
-f'''<xml>
+    response_xml = (f'''
+<xml>
     <ToUserName><![CDATA[{from_user}]]></ToUserName>
     <FromUserName><![CDATA[{developer_account}]]></FromUserName>
-    <CreateTime>{create_time}</CreateTime>
+    <CreateTime>{int(time())}</CreateTime>
     <MsgType><![CDATA[text]]></MsgType>
     <Content><![CDATA[{reply_message}]]></Content>
-</xml>'''
+</xml>
+    ''')
     return text(response_xml, content_type='text/xml')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
@@ -123,45 +137,6 @@ async def port_get(request: Request, room: str):
     return text('Wrong signature!', status=403)
 
 
-@app.post('/setting/<room:str>')  # replace room setting
-async def setting_post(request: Request, room: str):
-    state_binary: bytes = request.body
-    global state_update_producer
-    if state_update_producer is None:
-        state_update_producer = pulsar_client.create_producer(
-            'persistent://public/default/state',
-            block_if_queue_full=True
-        )
-
-    def callback(res, msg_id): pass
-
-    state_update_producer.send_async(
-        content=json.dumps([room, state_binary.decode()]).encode(),
-        callback=callback
-    )
-    return text('success')
-
-
-@app.get('/setting/<room:str>')  # get room setting
-async def setting_get(request: Request, room: str):
-    resp = await httpClient.get(f'http://pulsar:8080/admin/v3/functions/public/default/tagger/state/{room}', headers=super_user_headers)
-    obj: Mapping[str, Union[str, int]] = resp.json()
-    print('Settings:', obj) # TODO: Remove debug log
-    if 'stringValue' not in obj:
-        return text('setting is not initialized', status=404)
-    return text(obj['stringValue'])
-
-
-@app.get('/debug/<room:str>')
-async def debug_room(request: Request, room: str):
-    reader = pulsar_client.create_reader(f'persistent://public/default/{room}', start_message_id=pulsar.MessageId.earliest)
-    msgs = []
-    while reader.has_message_available():
-        # receive/read_next will block whole server if there is no message available
-        msg = reader.read_next().properties()
-        msgs.append(msg)
-
-    return objectNotation(msgs)
 
 
 if __name__ == '__main__':
