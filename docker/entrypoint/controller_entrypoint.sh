@@ -1,4 +1,5 @@
 #!/bin/bash
+
 if [ -f "/private_key/private.key" ]; then
     echo "use exist private key."
 else

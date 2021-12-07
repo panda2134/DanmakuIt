@@ -1,4 +1,5 @@
 #!/bin/bash
+
 echo "-- Wait for Pulsar service to be ready"
 until curl http://localhost:8080/metrics > /dev/null 2>&1 ; do sleep 1; done
 echo "-- Pulsar service is ready -- Create functions"
