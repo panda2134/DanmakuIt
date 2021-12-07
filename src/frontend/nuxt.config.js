@@ -7,6 +7,11 @@ export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: 'static',
 
+  // Environs
+  env: {
+    GITHUB_SHA: process.env.GITHUB_SHA
+  },
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     titleTemplate: '%s - 弹幕一下',
