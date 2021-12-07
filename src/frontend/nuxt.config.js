@@ -9,7 +9,8 @@ export default {
 
   // Environs
   env: {
-    GITHUB_SHA: process.env.GITHUB_SHA
+    GITHUB_SHA: process.env.GITHUB_SHA,
+    TEST_TOKEN: process.env.TEST_TOKEN || ''
   },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
@@ -26,7 +27,7 @@ export default {
       { name: 'format-detection', content: 'telephone=no' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/png', href: '/favicon.png' }
     ]
   },
 
@@ -73,8 +74,8 @@ export default {
     theme: {
       themes: {
         light: {
-          primary: colors.orange.darken2,
-          secondary: colors.blue.darken1,
+          primary: colors.blue.darken1,
+          secondary: colors.orange.darken2,
           accent: colors.pink.base,
           error: colors.red.base,
           warning: colors.deepOrange.base,
