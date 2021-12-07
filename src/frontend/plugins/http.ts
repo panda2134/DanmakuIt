@@ -12,7 +12,7 @@ type APIDeleteType<Q extends paths[keyof paths]> = Q extends Record<'delete', an
 } : {};
 
 type APIPatchType<Q extends paths[keyof paths]> = Q extends Record<'patch', any> ? {
-  patch: (postBody: Q['patch']['requestBody']['content']['application/json'], ...args: any[]) =>
+  patch: (patchBody: Q['patch']['requestBody']['content']['application/json'], ...args: any[]) =>
     Promise<Q['patch']['responses'] extends {200: any} ?
       Q['patch']['responses'][200]['content']['application/json'] : void>;
 } : {};
