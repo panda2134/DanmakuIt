@@ -6,7 +6,6 @@ from datetime import datetime
 from arq.connections import ArqRedis
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.bgtasks import get_bg_queue
 
@@ -25,7 +24,7 @@ router = APIRouter(tags=['room'])
 
 def notify_controller_on_update(room_id: str, room: Room):
     return http_client.post(f'{app_config.controller_url}/setting/{room_id}',
-                            json=jsonable_encoder(room))
+                            json=room.dict(include={'remote_censor', 'keyword_blacklist'}))
 
 
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
