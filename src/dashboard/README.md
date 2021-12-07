@@ -20,7 +20,7 @@ $ poetry install # run with python 3.9
 
 ## 登录
 
-登陆后 Token 在剪贴板。
+登陆后 Token 在前端控制台。
 
 <!-- - <a target="_self" href="/api/v1/user/social-login/github/login">GitHub</a>
 - <a target="_self" href="/api/v1/user/social-login/gitlab/login">GitLab</a> -->

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/danmakuit-panel.iml" filepath="$PROJECT_DIR$/.idea/danmakuit-panel.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/dashboard.iml" filepath="$PROJECT_DIR$/.idea/dashboard.iml" />
     </modules>
   </component>
 </project>
