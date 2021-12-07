@@ -66,7 +66,7 @@ async def refresh_wechat_access_token_room(ctx: Mapping[str, Any], room_id, wech
         raise KeyError(f'Error in access_token request for room {room_id}: {resp_obj}')
 
     reply = WeChatAccessTokenReply.parse_obj(resp_obj)
-    await http_client.post(f'{app_config.controller_url}/token/{room_id}', content=reply.access_token)
+    await http_client.put(f'{app_config.controller_url}/token/{room_id}', content=reply.access_token)
     logger.info(f'Room {room_id} access_token pushed to controller')
 
     bg_queue: ArqRedis = ctx['redis']
