@@ -59,10 +59,14 @@ class MongoCursorInterface(AsyncIterable):
         pass
 
 Database = Mapping[str, MongoCollectionInterface]
-db = None
 
-async def get_db():
-    global db
-    if db is None:
-        db = AsyncIOMotorClient(app_config.mongo_uri)[app_config.mongo_db_name]
-    return db
+def _():
+    db: Optional[Database] = None
+    async def get_db():
+        nonlocal db
+        if db is None:
+            db: Database = AsyncIOMotorClient(app_config.mongo_uri)[app_config.mongo_db_name]
+        return db
+    return get_db
+get_db = _()
+_ = None
