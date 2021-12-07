@@ -23,7 +23,7 @@ router = APIRouter(tags=['room'])
 
 
 def notify_controller_on_update(room_id: str, room: Room):
-    return http_client.post(f'{app_config.controller_url}/setting/{room_id}',
+    return http_client.put(f'{app_config.controller_url}/setting/{room_id}',
                             json=room.dict(include={'remote_censor', 'keyword_blacklist'}))
 
 
