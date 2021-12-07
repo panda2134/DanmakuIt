@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Mapping, Optional, Sequence,  Union
+from typing import Mapping, Optional, Sequence, Union, AsyncIterable
 from pymongo.results import InsertOneResult, UpdateResult, DeleteResult
 from pymongo.collection import ReturnDocument
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection, AsyncIOMotorDatabase
@@ -49,7 +49,7 @@ class MongoCollectionInterface(ABC):
         pass
 
 
-class MongoCursorInterface(ABC):
+class MongoCursorInterface(AsyncIterable):
     @abstractmethod
     async def to_list(self, length=None) -> Sequence[Mapping]:
         pass
