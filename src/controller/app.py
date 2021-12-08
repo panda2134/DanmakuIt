@@ -7,12 +7,13 @@ from xml.etree import ElementTree
 from time import time
 import os
 
-from typing import Mapping, MutableMapping, MutableSet, Optional
+from typing import Callable, Mapping, MutableMapping, MutableSet, Optional
 
 from cryptography.hazmat.primitives import serialization
 import jwt
 
 import aioredis
+from aioredis.client import PubSub
 from httpx import AsyncClient
 from sanic import Sanic, Request, text
 import pulsar
@@ -33,8 +34,13 @@ token_channel = redis.pubsub()
 token_cache: MutableMapping[str, str] = {}
 user_channel = redis.pubsub()
 user_cache: MutableMapping[str, MutableSet] = {}
+room_exist_channel = redis.pubsub()
+room_exist_cache: MutableSet[str] = set()
+room_enable_channel = redis.pubsub()
+room_enable_cache: MutableSet[str] = set()
 
 app = Sanic('Controller')
+
 
 def get_raw_producer():
     global raw_producer
@@ -47,6 +53,7 @@ def get_raw_producer():
         )
     return raw_producer
 
+
 def get_state_update_producer():
     global state_update_producer
     if state_update_producer is None:
@@ -56,6 +63,7 @@ def get_state_update_producer():
         )
     return state_update_producer
 
+
 def get_user_producer(room: str):
     if room not in user_producers:
         user_producers[room] = pulsar_client.create_producer(
@@ -64,27 +72,38 @@ def get_user_producer(room: str):
         )
     return user_producers[room]
 
+
+def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
+    async def wrapper():
+        await pubsub.subscribe(channel)
+        async for message in pubsub.listen():
+            data: str = message['data']
+            func(data.split(':'))
+    asyncio.create_task(wrapper())
+
+
 @app.before_server_start
 async def setup(*args, **kwargs):
-    await token_channel.subscribe('access_token')
+    def sync_token_cache(key: str, value: str):
+        token_cache[key] = value
+    sync_worker(token_channel, 'access_token', sync_token_cache)
 
-    async def sync_token_cache():
-        async for message in token_channel.listen():
-            data: str = message['data']
-            key, value = data.split(':')
-            token_cache[key] = value
-    asyncio.create_task(sync_token_cache())
-    await user_channel.subscribe('room_user')
     # TODO: read from pulsar to recover data
+    def sync_user_cache(key: str, value: str):
+        if key not in user_cache:
+            user_cache[key] = set()
+        user_cache[key].add(value)
+    sync_worker(user_channel, 'room_user', sync_user_cache)
 
-    async def sync_user_cache():
-        async for message in user_channel.listen():
-            data: str = message['data']
-            key, value = data.split(':')
-            if key not in user_cache:
-                user_cache[key] = set()
-            user_cache[key].add(value)
-    asyncio.create_task(sync_user_cache())
+    def sync_set_cache(set_cache: MutableSet):
+        def sync(key: str, value: str):
+            if value == '0':
+                return set_cache.remove(key)
+            if value == '1':
+                return set_cache.add(key)
+        return sync
+    sync_worker(room_exist_channel, 'room_exist', sync_set_cache(room_exist_cache))
+    sync_worker(room_enable_channel, 'room_enable', sync_set_cache(room_enable_cache))
 
 
 @app.after_server_stop
@@ -96,6 +115,9 @@ async def cleanup(*args, **kwargs):
 
     pulsar_client.close()
 
+    await room_enable_channel.unsubscribe()
+    await room_exist_channel.unsubscribe()
+    await user_channel.unsubscribe()
     await token_channel.unsubscribe()
 
 
@@ -118,6 +140,8 @@ async def room_post(request: Request, room: str):
     if resp.status_code != 204:
         return text(text=f'grant permission error: {resp.status_code}', status=resp.status_code)
 
+    await redis.publish('room_exist', f'{room}:1')
+
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
     return text(token)
 
@@ -131,54 +155,69 @@ async def token_put(request: Request, room: str):
 
 @app.put('/setting/<room:str>')  # replace room setting
 async def setting_put(request: Request, room: str):
-    state_binary: bytes = request.body
+    state: MutableMapping = json.loads(request.body)
+    enable = int(state['danmaku_enabled'])
+    await redis.publish('room_enable', f'{room}:{enable}')
+    del state['danmaku_enabled']
     get_state_update_producer().send_async(
-        content=json.dumps([room, state_binary.decode()]).encode(),
+        content=json.dumps([room, json.dumps(state)]).encode(),
         callback=lambda *_: None
     )
     return text('success')
 
 
+room_not_found = '房间不存在'
+room_disable = '房间未开启弹幕'
+not_support = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
+success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
+
 @app.post('/port/<room:str>')  # wechat send danmaku
 async def port_post(request: Request, room: str):
-    root = ElementTree.fromstring(request.body)
-    data: Mapping[str, str] = {el.tag: el.text for el in root}
+    data: Mapping[str, str] = {el.tag: el.text for el in ElementTree.fromstring(request.body)}
+    from_user = data.get('FromUserName', '')
+    developer_account = data.get('ToUserName', '')
+    def reply_xml(reply_message: str):
+        return text(f'''
+            <xml>
+                <ToUserName><![CDATA[{from_user}]]></ToUserName>
+                <FromUserName><![CDATA[{developer_account}]]></FromUserName>
+                <CreateTime>{int(time())}</CreateTime>
+                <MsgType><![CDATA[text]]></MsgType>
+                <Content><![CDATA[{reply_message}]]></Content>
+            </xml>''',
+            content_type='text/xml'
+        )
+    
+    if room not in room_exist_cache:
+        return reply_xml(room_not_found)
+    
     message_type = data.get('MsgType', '')
+    if message_type not in {'text', 'event'}:
+        return reply_xml(not_support)
+    
     if message_type == 'event':
-        # TODO:
-        return
+        # TODO
+        event = data.get('Event', '')
+        return text('success')
 
     content = data.get('Content', '')
-    from_user = data.get('FromUserName', '')
+    if content == '【收到不支持的消息类型，暂无法显示】':
+        return reply_xml(not_support)
+
     sender = 'user@wechat:' + from_user  # add user@wechat: prefix; client should strip this before getting the avatar
-    developer_account = data.get('ToUserName', '')
+    get_raw_producer().send_async(
+        content=json.dumps(
+            dict(
+                content=content,
+                sender=sender,
+                room=room,
+            ),
+            ensure_ascii=False
+        ).encode(),
+        callback=lambda *_: None
+    )
+    return reply_xml(success)
 
-    if message_type != 'text' or content == '【收到不支持的消息类型，暂无法显示】':
-        reply_message = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
-    else:
-        get_raw_producer().send_async(
-            content=json.dumps(
-                dict(
-                    content=content,
-                    sender=sender,
-                    room=room,
-                ),
-                ensure_ascii=False
-            ).encode(),
-            callback=lambda *_: None
-        )
-        reply_message = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
-
-    response_xml = (f'''
-<xml>
-    <ToUserName><![CDATA[{from_user}]]></ToUserName>
-    <FromUserName><![CDATA[{developer_account}]]></FromUserName>
-    <CreateTime>{int(time())}</CreateTime>
-    <MsgType><![CDATA[text]]></MsgType>
-    <Content><![CDATA[{reply_message}]]></Content>
-</xml>
-    ''')
-    return text(response_xml, content_type='text/xml')
 
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
