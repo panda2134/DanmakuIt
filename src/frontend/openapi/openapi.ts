@@ -38,12 +38,13 @@ export interface paths {
     /** uid, room_id and creation_time cannot be altered */
     patch: operations["modify_room_room__room_id__patch"];
   };
-  "/room/{room_id}/qrcode": {
-    get: operations["get_room_qrcode_room__room_id__qrcode_get"];
-  };
   "/room/{room_id}/client-login": {
     /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
     get: operations["client_login_room_room__room_id__client_login_get"];
+  };
+  "/room/{room_id}/qrcode": {
+    /** Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
+    get: operations["get_room_qrcode_room__room_id__qrcode_get"];
   };
 }
 
@@ -298,27 +299,6 @@ export interface operations {
       };
     };
   };
-  get_room_qrcode_room__room_id__qrcode_get: {
-    parameters: {
-      path: {
-        room_id: string;
-      };
-    };
-    responses: {
-      /** Successful Response */
-      200: {
-        content: {
-          "application/json": components["schemas"]["RoomQRCodeResponse"];
-        };
-      };
-      /** Validation Error */
-      422: {
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
   /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
   client_login_room_room__room_id__client_login_get: {
     parameters: {
@@ -331,6 +311,28 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["Room"];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
+  get_room_qrcode_room__room_id__qrcode_get: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RoomQRCodeResponse"];
         };
       };
       /** Validation Error */
