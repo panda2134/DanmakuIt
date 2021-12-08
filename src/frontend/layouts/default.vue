@@ -20,10 +20,10 @@
           <v-list nav>
             <v-list-item>
               <v-list-item-avatar>
-                <img
+                <v-img
                   :src="user.avatar"
                   :alt="user.username"
-                >
+                />
               </v-list-item-avatar>
               <v-list-item-content>
                 <v-list-item-title class="text-h6">
@@ -61,6 +61,14 @@
     </v-app-bar>
     <v-main>
       <v-container fluid>
+        <v-alert
+          border="top"
+          colored-border
+          type="warning"
+          elevation="2"
+        >
+          网站仍处于内测阶段，可能清空数据库，请谨慎使用。
+        </v-alert>
         <Nuxt />
       </v-container>
     </v-main>
