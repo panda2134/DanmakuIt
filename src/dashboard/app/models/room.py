@@ -3,11 +3,11 @@ from typing import List, Optional, Any
 from datetime import datetime
 
 
-class RoomCreation(BaseModel):
+class RoomNameModel(BaseModel):
     name: str
 
 
-class RoomDeletal(BaseModel):
+class RoomIdModel(BaseModel):
     room_id: str
 
 
@@ -17,7 +17,7 @@ class RoomQRCodeResponse(BaseModel):
     url: str
 
 
-class Room(RoomCreation):
+class Room(RoomNameModel):
     _id: Any # should be ObjectId from motor, but pydantic cannot handle that
     uid: str
     danmaku_enabled: bool = Field(True)
