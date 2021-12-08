@@ -1,5 +1,3 @@
-import asyncio
-
 from hashlib import sha1, sha256
 from binascii import b2a_base64
 import json
@@ -7,7 +5,7 @@ from xml.etree import ElementTree
 from time import time
 import os
 
-from typing import Callable, Mapping, MutableMapping, MutableSet, Optional
+from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence
 
 from cryptography.hazmat.primitives import serialization
 import jwt
@@ -23,7 +21,7 @@ with open('/private_key/private.key', 'rb') as f:
 # jwt's key can be cryptography key object or str(PEM/SSH or HMAC secret)
 super_user_token = jwt.encode({'sub': 'super-user'}, private_key, algorithm='RS256', headers={'typ': None})
 
-httpClient = AsyncClient(headers={'Authorization': f'Bearer {super_user_token}'})
+http_client = AsyncClient(headers={'Authorization': f'Bearer {super_user_token}'})
 pulsar_client = pulsar.Client('pulsar://pulsar:6650', pulsar.AuthenticationToken(super_user_token))
 raw_producer: Optional[pulsar.Producer] = None
 state_update_producer: Optional[pulsar.Producer] = None
@@ -79,7 +77,7 @@ def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
         async for message in pubsub.listen():
             data: str = message['data']
             func(data.split(':'))
-    asyncio.create_task(wrapper())
+    app.add_task(wrapper())
 
 
 @app.before_server_start
@@ -108,7 +106,7 @@ async def setup(*args, **kwargs):
 
 @app.after_server_stop
 async def cleanup(*args, **kwargs):
-    await httpClient.aclose()
+    await http_client.aclose()
 
     raw_producer.flush() if raw_producer is not None else None
     state_update_producer.flush() if state_update_producer is not None else None
@@ -124,19 +122,19 @@ async def cleanup(*args, **kwargs):
 @app.post('/room/<room:str>')  # register room
 async def room_post(request: Request, room: str):
     prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
-    resp = await httpClient.put(f'{prefix}/{room}')
+    resp = await http_client.put(f'{prefix}/{room}')
     if resp.status_code not in {204, 409}:
         return text(f'create danmaku topic error: {resp.status_code}', status=resp.status_code)
 
-    resp = await httpClient.put(f'{prefix}/user_{room}')
+    resp = await http_client.put(f'{prefix}/user_{room}')
     if resp.status_code not in {204, 409}:
         return text(f'create user topic error: {resp.status_code}', status=resp.status_code)
 
-    resp = await httpClient.post(f'{prefix}/{room}/permissions/display_{room}', json=['consume'])
+    resp = await http_client.post(f'{prefix}/{room}/permissions/display_{room}', json=['consume'])
     if resp.status_code != 204:
         return text(text=f'grant permission error: {resp.status_code}', status=resp.status_code)
 
-    resp = await httpClient.post(f'{prefix}/user_{room}/permissions/display_{room}', json=['consume'])
+    resp = await http_client.post(f'{prefix}/user_{room}/permissions/display_{room}', json=['consume'])
     if resp.status_code != 204:
         return text(text=f'grant permission error: {resp.status_code}', status=resp.status_code)
 
@@ -144,6 +142,32 @@ async def room_post(request: Request, room: str):
 
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
     return text(token)
+
+
+@app.post('/feed/<room:str>')  # fetch and push user info
+async def feed_post(request: Request, room: str):
+    if room not in room_exist_cache:
+        return text('room not found', status=404)
+    if room not in token_cache:
+        return text('room access token not found', status=403)
+    resp = await http_client.get(
+        'https://api.weixin.qq.com/cgi-bin/user/get',
+        params={
+            'access_token': token_cache[room]
+        }
+    )
+    # TODO: > 10000 user, nextopenid
+    if resp.status_code != 200:
+        return text('Error fetch from wechat', status=500)
+    resp_obj: Mapping[str, Any] = resp.json()
+    if 'errcode' in resp_obj:
+        return text('Error fetch from wechat', status=500)
+    users: Sequence[str] = resp_obj['data']['openid']
+    async def feed():
+        for openid in users:
+            pass
+    app.add_task(feed())
+    return text('success')
 
 
 @app.put('/token/<room:str>')  # replace wechat access token
@@ -155,6 +179,9 @@ async def token_put(request: Request, room: str):
 
 @app.put('/setting/<room:str>')  # replace room setting
 async def setting_put(request: Request, room: str):
+    if room not in room_exist_cache:
+        return text('room not found', status=404)
+
     state: MutableMapping = json.loads(request.body)
     enable = int(state['danmaku_enabled'])
     await redis.publish('room_enable', f'{room}:{enable}')
@@ -171,11 +198,13 @@ room_disable = '房间未开启弹幕'
 not_support = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
 success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
 
+
 @app.post('/port/<room:str>')  # wechat send danmaku
 async def port_post(request: Request, room: str):
     data: Mapping[str, str] = {el.tag: el.text for el in ElementTree.fromstring(request.body)}
     from_user = data.get('FromUserName', '')
     developer_account = data.get('ToUserName', '')
+
     def reply_xml(reply_message: str):
         return text(f'''
             <xml>
@@ -185,18 +214,18 @@ async def port_post(request: Request, room: str):
                 <MsgType><![CDATA[text]]></MsgType>
                 <Content><![CDATA[{reply_message}]]></Content>
             </xml>''',
-            content_type='text/xml'
-        )
-    
+                    content_type='text/xml'
+                    )
+
     if room not in room_exist_cache:
         return reply_xml(room_not_found)
     if room not in room_enable_cache:
         return reply_xml(room_disable)
-    
+
     message_type = data.get('MsgType', '')
     if message_type not in {'text', 'event'}:
         return reply_xml(not_support)
-    
+
     if message_type == 'event':
         # TODO
         event = data.get('Event', '')
