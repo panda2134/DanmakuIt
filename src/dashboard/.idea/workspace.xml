@@ -3,7 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): push new access_token to pulsar config">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/pages/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/pages/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/room.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/room.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routers/room/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routers/room/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,6 +45,7 @@
       <option name="presentableId" value="Default" />
       <updated>1638862096720</updated>
       <workItem from="1638862098029" duration="4152000" />
+      <workItem from="1638974804099" duration="1410000" />
     </task>
     <task id="LOCAL-00001" summary="fix: wechat access token bgtasks">
       <created>1638862342966</created>
@@ -108,6 +112,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix: wechat access token bgtasks" />

@@ -7,9 +7,11 @@ from arq.connections import ArqRedis
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from httpx import HTTPError
+
 from app.bgtasks import get_bg_queue
 
-from app.models.room import Room, RoomCreation, RoomUpdate, RoomDeletal
+from app.models.room import Room, RoomCreation, RoomUpdate, RoomDeletal, RoomQRCodeResponse
 from app.models.user import User
 from app.utils.jwt import get_current_user
 from app.utils.room import generate_room_id, readable_sha256, push_setting
@@ -112,6 +114,29 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
         await bg_queue.enqueue_job('refresh_wechat_access_token_room',
                                    updated_room.room_id, updated_room.wechat_appid, updated_room.wechat_appsecret)
     return updated_room
+
+
+@router.get('/{room_id}/qrcode', response_model=RoomQRCodeResponse)
+async def get_room_qrcode(room_id: str, room_query: dict = Depends(room_with_auth)):
+    doc = await get_db()['room'].find_one(room_query)
+    if doc is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+    # fetch QR Code from WeChat Official Account API
+    room = Room.parse_obj(doc)
+    if room.wechat_access_token is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail='No WeChat access token.')
+    try:
+        res = await http_client.post(f'https://api.weixin.qq.com/cgi-bin/qrcode/create',
+                                     json={'action_name': 'QR_STR_SCENE',
+                                           'expire_seconds': 2592000,
+                                           'action_info': {'scene': {'scene_str': room_id}}},
+                                     params={'access_token': room.wechat_access_token})
+        res.raise_for_status()
+        return res.json()
+    except HTTPError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot get QR code from WeChat.')
 
 
 @router.delete('/{room_id}', response_model=RoomDeletal)
