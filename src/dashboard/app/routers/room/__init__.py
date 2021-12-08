@@ -183,7 +183,7 @@ async def fetch_subscribers_of_room(room_id: str, room_query: dict = Depends(roo
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     try:
-        await http_client.post(f'http://controller:8000/feed/{room_id}')
+        await http_client.post(f'{app_config.controller_url}/feed/{room_id}')
         return {'room_id': room_id}
     except HTTPError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
