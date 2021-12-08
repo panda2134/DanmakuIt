@@ -1,6 +1,7 @@
 <template>
   <v-container>
     <room-detail-header :room-id="room.room_id" :room-name="room.name" />
+    <danmaku-wall-info-card :room-id="room.room_id" :passcode="room.room_passcode" />
   </v-container>
 </template>
 
