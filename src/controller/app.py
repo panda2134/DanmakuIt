@@ -103,7 +103,7 @@ async def setup(*args, **kwargs):
     def sync_set_cache(set_cache: MutableSet):
         def sync(key: str, value: str):
             if value == '0':
-                return set_cache.remove(key)
+                return set_cache.discard(key)
             if value == '1':
                 return set_cache.add(key)
         return sync
