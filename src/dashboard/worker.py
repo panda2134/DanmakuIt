@@ -97,6 +97,6 @@ async def shutdown(ctx):
 
 class WorkerSettings:
     redis_settings = redis_settings
-    functions = [refresh_wechat_access_token_all, refresh_wechat_access_token_room]
+    functions = [resume_controller, refresh_wechat_access_token_all, refresh_wechat_access_token_room]
     on_startup = startup
     on_shutdown = shutdown
