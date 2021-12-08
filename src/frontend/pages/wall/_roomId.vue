@@ -26,9 +26,9 @@
         </h1>
       </v-col>
       <v-col xl="4" cols="12">
-        <v-img :src="qrCodePath" width="100px" height="100px" class="float-end">
+        <v-img :src="qrCodePath" width="150px" height="150px" class="float-end">
           <template #placeholder>
-            <img width="100px" height="100px" src="~assets/qr.svg" alt="QR Placeholder">
+            <img width="150px" height="150px" src="~assets/qr.svg" alt="QR Placeholder">
           </template>
         </v-img>
       </v-col>
@@ -78,7 +78,7 @@ interface WallData {
   room: Room;
   danmakuList: Danmaku[];
   availableSlotCount: number;
-  ws: WebSocket | null;
+  wsDanmaku: WebSocket | null;
   retryHandle: ReturnType<typeof setInterval>;
   passcodeInput: string;
   showPasscodeDialog: boolean;
@@ -126,7 +126,7 @@ export default Vue.extend({
       room: emptyRoom,
       danmakuList: [],
       availableSlotCount: 0,
-      ws: null,
+      wsDanmaku: null,
       retryHandle: setInterval(() => {}, 1e10), // noop
       passcodeInput: '',
       showPasscodeDialog: false,
@@ -139,7 +139,11 @@ export default Vue.extend({
     try {
       // eslint-disable-next-line camelcase
       this.room = await this.$api['/room/{room_id}/client-login'].get(roomId, roomPasscode)
-      this.qrCodeTicket = (await this.$api['/room/{room_id}/qrcode'].get(roomId, roomPasscode)).ticket
+      try {
+        this.qrCodeTicket = (await this.$api['/room/{room_id}/qrcode'].get(roomId, roomPasscode)).ticket
+      } catch (e) {
+        this.$toast.error('获取二维码失败，可能是AppId/AppSecret填写错误')
+      }
       // @ts-ignore
       await this.initWebSocket()
       this.showPasscodeDialog = false
@@ -162,17 +166,18 @@ export default Vue.extend({
   },
   methods: {
     initWebSocket () {
-      if (this.ws) {
-        this.ws.close()
+      if (this.wsDanmaku) {
+        this.wsDanmaku.close()
       }
       const subscriptionName = 'DanmakuWall' + '~' + nanoid()
       // eslint-disable-next-line camelcase
-      this.ws = new WebSocket(`wss://danmakuit.panda2134.site/websocket/consumer/persistent/public/default/${this.room.room_id}/${subscriptionName}?token=${this.room.pulsar_jwt}`)
-      this.ws.onmessage = (msg) => {
+      this.wsDanmaku = new WebSocket('wss://danmakuit.panda2134.site/websocket/' +
+        `consumer/persistent/public/default/${this.room.room_id}/${subscriptionName}?token=${this.room.pulsar_jwt}`)
+      this.wsDanmaku.onmessage = (msg) => {
         const pulsarData = JSON.parse(msg.data)
         if (pulsarData.messageId) {
           // we've met a danmaku event
-          this.ws!.send(JSON.stringify({ messageId: pulsarData.messageId })) // ACK
+          this.wsDanmaku!.send(JSON.stringify({ messageId: pulsarData.messageId })) // ACK
           this.handleDanmaku(pulsarData)
         }
       }
@@ -181,7 +186,7 @@ export default Vue.extend({
         const closeHandler = () => {
           clearInterval(this.retryHandle)
           this.$toast('与服务器连接断开，重试中...', { color: 'red' })
-          this.ws!.removeEventListener('close', closeHandler)
+          this.wsDanmaku!.removeEventListener('close', closeHandler)
           this.retryHandle = setInterval(() => {
             this.initWebSocket()
           }, 5000)
@@ -190,13 +195,13 @@ export default Vue.extend({
           closeHandler()
           reject(ev)
         }
-        this.ws!.onerror = errorHandler
-        this.ws!.onopen = () => {
+        this.wsDanmaku!.onerror = errorHandler
+        this.wsDanmaku!.onopen = () => {
           clearInterval(this.retryHandle)
           this.$toast('连接成功', { color: 'green' })
-          this.ws!.removeEventListener('error', errorHandler)
+          this.wsDanmaku!.removeEventListener('error', errorHandler)
           this.setWebSocketKeepAlive()
-          this.ws!.addEventListener('close', closeHandler)
+          this.wsDanmaku!.addEventListener('close', closeHandler)
           resolve()
         }
       })
@@ -217,10 +222,10 @@ export default Vue.extend({
     },
     setWebSocketKeepAlive () {
       const keepAlive = () => {
-        if (!this.ws) {
+        if (!this.wsDanmaku) {
           throw new Error('WebSocket is still null!')
         } else {
-          this.ws.send(JSON.stringify({ type: 'isEndOfTopic' }))
+          this.wsDanmaku.send(JSON.stringify({ type: 'isEndOfTopic' }))
         }
       }
       keepAlive()
