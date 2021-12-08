@@ -74,9 +74,13 @@ def get_user_producer(room: str):
 def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
     async def wrapper():
         await pubsub.subscribe(channel)
-        async for message in pubsub.listen():
+        while pubsub.subscribed:
+            message = pubsub.handle_message(await pubsub.parse_response(block=True), ignore_subscribe_messages=True)
+            if message is None:
+                continue
             data: str = message['data']
-            func(data.split(':'))
+            func(*data.split(':'))
+    
     app.add_task(wrapper())
 
 
