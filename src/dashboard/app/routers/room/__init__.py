@@ -12,7 +12,7 @@ from app.bgtasks import get_bg_queue
 from app.models.room import Room, RoomCreation, RoomUpdate, RoomDeletal
 from app.models.user import User
 from app.utils.jwt import get_current_user
-from app.utils.room import generate_room_id, readable_sha256
+from app.utils.room import generate_room_id, readable_sha256, push_setting
 
 from app.config import app_config
 from pymongo import DESCENDING
@@ -20,12 +20,6 @@ from app.db import get_db
 from app.http_client import http_client
 
 router = APIRouter(tags=['room'])
-
-
-def notify_controller_on_update(room_id: str, room: Room):
-    return http_client.put(f'{app_config.controller_url}/setting/{room_id}',
-                            json=room.dict(include={'danmaku_enabled', 'remote_censor', 'keyword_blacklist'}))
-
 
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
     for i in range(app_config.max_rollback_retry):
@@ -61,8 +55,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot create the room in database.')
-    resp = await notify_controller_on_update(room_id, room)
-    # if resp 404, maybe retry later
+    resp = await push_setting(http_client, room_id, room, mode='force')
     if not resp.is_success:
         async def rollback_op():
             delete_result = await db['room'].delete_one({'_id': insert_result.inserted_id})
@@ -70,7 +63,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
 
         await rollback(rollback_op)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f'Cannot initialize setting the room in controller. {resp.text}')
+                            detail=f'Cannot initialize setting the room in controller. {resp.status_code}')
 
     return room
 
@@ -104,7 +97,7 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     updated_room = Room.parse_obj(dict(origin_room, **update_dict))
     # TODO: use setting version to ensure the consistency between database and pulsar
-    resp = await notify_controller_on_update(room_id, updated_room)
+    resp = await push_setting(http_client, room_id, updated_room)
     if not resp.is_success:
         _id = origin_room['_id']
 

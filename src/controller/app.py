@@ -83,7 +83,7 @@ def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
                 continue
             data: str = message['data']
             func(*data.split(':'))
-    
+
     app.add_task(wrapper())
 
 
@@ -172,13 +172,14 @@ async def feed_post(request: Request, room: str):
     users: Sequence[str] = resp_obj['data']['openid']
 
     producer = get_user_producer(room)
+
     async def feed():
         batch_size = 100
         for i in range(0, len(users), batch_size):
             def batchget():
                 return http_client.post(
                     'https://api.weixin.qq.com/cgi-bin/user/info/batchget',
-                    json={'user_list':[{'openid': openid} for openid in users[i:i + batch_size]]},
+                    json={'user_list': [{'openid': openid} for openid in users[i:i + batch_size]]},
                     params={'access_token': token}
                 )
             resp = await batchget()
@@ -187,7 +188,7 @@ async def feed_post(request: Request, room: str):
                 resp = await batchget()
             resp_obj: Mapping[str, Any] = resp.json()
             if 'errorcode' in resp_obj:
-                break # TODO: error handling
+                break  # TODO: error handling
             user_info_list: Sequence[Mapping[str, Union[str, Any]]] = resp_obj['user_info_list']
             data_list = [
                 dict(
@@ -215,8 +216,12 @@ async def token_put(request: Request, room: str):
 
 @app.put('/setting/<room:str>')  # replace room setting
 async def setting_put(request: Request, room: str):
+    mode: Optional[str] = request.get_args().get('mode')
     if room not in room_exist_cache:
-        return text('room not found', status=404)
+        if mode is None:
+            return text('room not found', status=404)
+        if mode == 'resume':
+            await redis.publish('room_exist', f'{room}:1')
 
     state: MutableMapping = json.loads(request.body)
     enable = int(state['danmaku_enabled'])
