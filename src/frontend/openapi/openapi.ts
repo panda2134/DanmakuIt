@@ -39,8 +39,12 @@ export interface paths {
     patch: operations["modify_room_room__room_id__patch"];
   };
   "/room/{room_id}/client-login": {
-    /** Set `room_passcode` to HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
+    /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
     get: operations["client_login_room_room__room_id__client_login_get"];
+  };
+  "/room/{room_id}/qrcode": {
+    /** Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
+    get: operations["get_room_qrcode_room__room_id__qrcode_get"];
   };
 }
 
@@ -62,12 +66,21 @@ export interface components {
       wechat_token: string;
       wechat_encrypted?: boolean;
       wechat_encryption_key?: string;
+      wechat_appid?: string;
+      wechat_appsecret?: string;
+      wechat_access_token?: string;
+      user_danmaku_colors?: string[];
     };
     RoomCreation: {
       name: string;
     };
     RoomDeletal: {
       room_id: string;
+    };
+    RoomQRCodeResponse: {
+      ticket: string;
+      expire_seconds: number;
+      url: string;
     };
     RoomUpdate: {
       name?: string;
@@ -77,6 +90,9 @@ export interface components {
       wechat_token?: string;
       wechat_encrypted?: boolean;
       wechat_encryption_key?: string;
+      wechat_appid?: string;
+      wechat_appsecret?: string;
+      user_danmaku_colors?: string[];
     };
     User: {
       username: string;
@@ -283,7 +299,7 @@ export interface operations {
       };
     };
   };
-  /** Set `room_passcode` to HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
+  /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
   client_login_room_room__room_id__client_login_get: {
     parameters: {
       path: {
@@ -295,6 +311,28 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["Room"];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
+  get_room_qrcode_room__room_id__qrcode_get: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RoomQRCodeResponse"];
         };
       };
       /** Validation Error */

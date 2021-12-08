@@ -36,7 +36,7 @@ class SocialLoginSettings(BaseSettings):
 
 class RoomSettings(BaseSettings):
     danmaku_wall_prefix: HttpUrl = Field('http://127.0.0.1:3000/wall/')
-    room_passcode_length: int = Field(6, ge=6, le=16)
+    room_passcode_length: int = Field(6, ge=6, le=16, env='ROOM_PASSCODE_LEN')
     wechat_token_length: int = Field(12, ge=8, le=16, env='WECHAT_TOKEN_LEN')
     wechat_retry_secs: int = Field(60, env='WECHAT_RETRY_SECS')
 

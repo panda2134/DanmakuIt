@@ -10,7 +10,9 @@ export default {
   // Environs
   env: {
     GITHUB_SHA: process.env.GITHUB_SHA,
-    TEST_TOKEN: process.env.TEST_TOKEN || ''
+    TEST_TOKEN: process.env.TEST_TOKEN || '',
+    WECHAT_CALLBACK_URL_BASE: process.env.WECHAT_CALLBACK_URL_BASE || 'https://danmakuit.panda2134.site/port/',
+    ROOM_PASSCODE_LEN: process.env.ROOM_PASSCODE_LEN || '6'
   },
 
   // Global page headers: https://go.nuxtjs.dev/config-head
@@ -56,7 +58,8 @@ export default {
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/axios
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    'portal-vue/nuxt'
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
@@ -70,6 +73,9 @@ export default {
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
+    treeShake: {
+      components: ['VSnackbar', 'VBtn', 'VIcon']
+    },
     customVariables: ['~/assets/variables.scss'],
     theme: {
       themes: {
