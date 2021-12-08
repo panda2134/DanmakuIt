@@ -10,7 +10,8 @@ export default {
   // Environs
   env: {
     GITHUB_SHA: process.env.GITHUB_SHA,
-    TEST_TOKEN: process.env.TEST_TOKEN || ''
+    TEST_TOKEN: process.env.TEST_TOKEN || '',
+    WECHAT_CALLBACK_URL_BASE: process.env.WECHAT_CALLBACK_URL_BASE || 'https://danmakuit.panda2134.site/port/'
   },
 
   // Global page headers: https://go.nuxtjs.dev/config-head

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h1 class="text-h4">
+    <h1 class="text-h5">
       我的房间
     </h1>
     <v-fab-transition>

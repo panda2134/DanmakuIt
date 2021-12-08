@@ -210,7 +210,7 @@ $danmaku-transition-time: 0.6s;
   background-size: cover;
   padding: 64px 53px;
   h1.display-3 {
-    font-family: "ZCOOLKuaiLe", sans-serif !important;
+    font-family: "ZCOOL KuaiLe", sans-serif !important;
     color: var(--v-primary-base);
     font-weight: normal;
   }
@@ -221,7 +221,7 @@ $danmaku-transition-time: 0.6s;
     color: map-get($indigo, 'lighten-1');
   }
   .danmaku--content {
-    font-family: "ZCOOLKuaiLe", sans-serif !important;
+    font-family: "ZCOOL KuaiLe", sans-serif !important;
   }
   .danmaku-box--inner-enter-active {
     transition: all $danmaku-transition-time;

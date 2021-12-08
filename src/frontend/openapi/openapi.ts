@@ -39,7 +39,7 @@ export interface paths {
     patch: operations["modify_room_room__room_id__patch"];
   };
   "/room/{room_id}/client-login": {
-    /** Set `room_passcode` to HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
+    /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
     get: operations["client_login_room_room__room_id__client_login_get"];
   };
 }
@@ -62,6 +62,8 @@ export interface components {
       wechat_token: string;
       wechat_encrypted?: boolean;
       wechat_encryption_key?: string;
+      wechat_appid?: string;
+      wechat_appsecret?: string;
     };
     RoomCreation: {
       name: string;
@@ -77,6 +79,8 @@ export interface components {
       wechat_token?: string;
       wechat_encrypted?: boolean;
       wechat_encryption_key?: string;
+      wechat_appid?: string;
+      wechat_appsecret?: string;
     };
     User: {
       username: string;
@@ -283,7 +287,7 @@ export interface operations {
       };
     };
   };
-  /** Set `room_passcode` to HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
+  /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
   client_login_room_room__room_id__client_login_get: {
     parameters: {
       path: {
