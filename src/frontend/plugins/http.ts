@@ -97,6 +97,9 @@ const myPlugin: Plugin = (context, inject) => {
       // token is invalid now!
       context.$axios.setToken(false)
       context.redirect('/', { invalid_token: 'true' })
+      return Promise.resolve(null)
+    } else {
+      throw err
     }
   })
 }
