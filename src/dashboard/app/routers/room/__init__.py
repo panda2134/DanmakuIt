@@ -29,7 +29,7 @@ def notify_controller_on_update(room_id: str, room: Room):
 
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
     for i in range(app_config.max_rollback_retry):
-        if rollback_op():
+        if await rollback_op():
             return
         await asyncio.sleep(1.5 ** i)
     # TODO: Log FATAL ERROR
@@ -42,7 +42,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     resp = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f'Cannot create the room in controller. {resp.content}')
+                            detail=f'Cannot create the room in controller. {resp.text}')
 
     pulsar_jwt = resp.text
     # -1 to skip paddings in base64
@@ -69,7 +69,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
 
         await rollback(rollback_op)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f'Cannot initialize setting the room in controller. {resp.content}')
+                            detail=f'Cannot initialize setting the room in controller. {resp.text}')
 
     return room
 
