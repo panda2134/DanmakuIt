@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): push new access_token to pulsar config">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/bgtasks/wechat.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/bgtasks/wechat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/pages/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/pages/index.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +31,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.notebooks.jupyter.connections.configuration.JupyterServerConfigurable" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -41,7 +41,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1638862096720</updated>
-      <workItem from="1638862098029" duration="3507000" />
+      <workItem from="1638862098029" duration="4152000" />
     </task>
     <task id="LOCAL-00001" summary="fix: wechat access token bgtasks">
       <created>1638862342966</created>

@@ -211,7 +211,7 @@ $danmaku-transition-time: 0.6s;
   padding: 64px 53px;
   h1.display-3 {
     font-family: "ZCOOLKuaiLe", sans-serif !important;
-    color: var(--v-secondary-base);
+    color: var(--v-primary-base);
     font-weight: normal;
   }
   .danmaku--user, .danmaku--content {

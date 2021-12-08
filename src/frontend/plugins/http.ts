@@ -91,6 +91,14 @@ const myPlugin: Plugin = (context, inject) => {
   const api = getAPI(context)
   context.$api = api
   inject('api', api)
+  context.$axios.onResponseError((err) => {
+    const statusCode = err.response?.status ?? 0
+    if (statusCode === 401 || (statusCode === 403 && err.response?.data.detail === 'Not authenticated')) {
+      // token is invalid now!
+      context.$axios.setToken(false)
+      context.redirect('/', { invalid_token: 'true' })
+    }
+  })
 }
 
 export default myPlugin
