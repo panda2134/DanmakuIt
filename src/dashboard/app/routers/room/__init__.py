@@ -6,7 +6,6 @@ from datetime import datetime
 from arq.connections import ArqRedis
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.bgtasks import get_bg_queue
 
@@ -17,15 +16,15 @@ from app.utils.room import generate_room_id, readable_sha256
 
 from app.config import app_config
 from pymongo import DESCENDING
-from app.db import get_db, Database
+from app.db import get_db
 from app.http_client import http_client
 
 router = APIRouter(tags=['room'])
 
 
 def notify_controller_on_update(room_id: str, room: Room):
-    return http_client.post(f'{app_config.controller_url}/setting/{room_id}',
-                            json=jsonable_encoder(room))
+    return http_client.put(f'{app_config.controller_url}/setting/{room_id}',
+                            json=room.dict(include={'remote_censor', 'keyword_blacklist'}))
 
 
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
@@ -38,7 +37,7 @@ async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
 
 
 @router.post('/', response_model=Room)
-async def create_room(room: RoomCreation, user: User = Depends(get_current_user), db: Database = Depends(get_db)):
+async def create_room(room: RoomCreation, user: User = Depends(get_current_user)):
     room_id = generate_room_id()
     resp = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
@@ -56,6 +55,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
                 pulsar_jwt=pulsar_jwt,
                 room_passcode=room_passcode,
                 wechat_token=wechat_token)
+    db = get_db()
     try:
         insert_result = await db['room'].insert_one(room.dict())
     except:
@@ -75,8 +75,8 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
 
 
 @router.get('/', response_model=Sequence[Room], response_description="last 100 created rooms")
-async def list_room(user: User = Depends(get_current_user), db: Database = Depends(get_db)):
-    room_docs = await db['room'].find({'uid': user.uid}).sort('creation_time', DESCENDING).to_list(100)
+async def list_room(user: User = Depends(get_current_user)):
+    room_docs = await get_db()['room'].find({'uid': user.uid}).sort('creation_time', DESCENDING).to_list(100)
     return room_docs
 
 
@@ -87,16 +87,16 @@ def room_with_auth(room_id: str, user: User = Depends(get_current_user)):
 
 
 @router.get('/{room_id}', response_model=Room)
-async def get_room(room_query: dict = Depends(room_with_auth), db: Database = Depends(get_db)):
-    doc = await db['room'].find_one(room_query)
+async def get_room(room_query: dict = Depends(room_with_auth)):
+    doc = await get_db()['room'].find_one(room_query)
     if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     return doc
 
 
 @router.patch('/{room_id}', response_model=Room, description="uid, room_id and creation_time cannot be altered")
-async def modify_room(room: RoomUpdate, room_id: str,
-        room_query: dict = Depends(room_with_auth), db: Database = Depends(get_db), bg_queue: ArqRedis = Depends(get_bg_queue)):
+async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_with_auth), bg_queue: ArqRedis = Depends(get_bg_queue)):
+    db = get_db()
     update_dict = room.dict(exclude_unset=True)
     origin_room = await db['room'].find_one_and_update(room_query, {'$set': update_dict})
     if origin_room is None:
@@ -114,16 +114,17 @@ async def modify_room(room: RoomUpdate, room_id: str,
         await rollback(rollback_op)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot modify setting the room in controller.')
-    if room.wechat_appid is not None or room.wechat_appsecret is not None: # appid or appsecret is updated
-        await bg_queue.enqueue_job('refresh_wechat_access_token_room', updated_room)
+    if room.wechat_appid is not None or room.wechat_appsecret is not None:  # appid or appsecret is updated
+        await bg_queue.enqueue_job('refresh_wechat_access_token_room',
+                                   updated_room.room_id, updated_room.wechat_appid, updated_room.wechat_appsecret)
     return updated_room
 
 
 @router.delete('/{room_id}', response_model=RoomDeletal)
-async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth), db: Database = Depends(get_db)):
-    if not await db['room'].count_documents(room_query, limit=1):
+async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
+    if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    res = await db['room'].delete_one(room_query)
+    res = await get_db()['room'].delete_one(room_query)
     if res.deleted_count == 0:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
 
@@ -136,9 +137,8 @@ room_passcode_scheme = HTTPBearer()
 
 @router.get('/{room_id}/client-login', response_model=Room,
             description='Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection')
-async def client_login_room(room_id: str, db: Database = Depends(get_db),
-                            passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
-    doc = await db['room'].find_one({'room_id': room_id})
+async def client_login_room(room_id: str, passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
+    doc = await get_db()['room'].find_one({'room_id': room_id})
     if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     room = Room.parse_obj(doc)

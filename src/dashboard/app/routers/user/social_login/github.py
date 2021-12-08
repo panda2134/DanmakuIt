@@ -1,10 +1,10 @@
 import httpx
 from authlib.integrations.starlette_client import StarletteRemoteApp
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, HttpUrl
 from starlette.requests import Request
 
-from app.db import get_db, Database
+from app.db import get_db
 from .oauth import oauth
 from app.config import app_config
 from app.models.user import User
@@ -26,7 +26,7 @@ async def login_github(request: Request):
 
 
 @router.get('/github/auth', status_code=307, response_description='redirect to frontend')
-async def auth_github(request: Request, db: Database = Depends(get_db)):
+async def auth_github(request: Request):
     github: StarletteRemoteApp = oauth.create_client('github')
     token = await github.authorize_access_token(request)
     try:
@@ -39,7 +39,7 @@ async def auth_github(request: Request, db: Database = Depends(get_db)):
     user_model = User(uid=f'github:{user.id}',
                       username=user.login,
                       avatar=user.avatar_url)
-    await db['user'].update_one(
+    await get_db()['user'].update_one(
         dict(connect_uid=user_model.uid),
         {'$set': user_model.dict()},
         upsert=True
