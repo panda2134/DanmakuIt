@@ -52,8 +52,10 @@
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
+    </v-fab-transition>
+    <v-fab-transition>
       <v-btn
-        v-else
+        v-if="deleteMode"
         fixed
         bottom
         right
@@ -71,14 +73,14 @@
           新房间名称
         </v-card-title>
         <v-card-text>
-          <v-text-field v-model="newRoomName" clearable />
+          <v-text-field v-model="newRoomName" :rules="[value => (value && value.length) || '不能为空']" clearable />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn text @click="showAddRoomDialog=false">
+          <v-btn text color="primary" @click="showAddRoomDialog=false">
             取消
           </v-btn>
-          <v-btn text @click="onRoomCreation">
+          <v-btn text :disabled="!newRoomName" color="success darken-1" @click="onRoomCreation">
             创建
           </v-btn>
         </v-card-actions>
@@ -102,9 +104,42 @@
               <v-btn color="primary" text>
                 管理
               </v-btn>
-              <v-btn v-if="deleteMode" color="error" text>
-                删除
-              </v-btn>
+              <v-dialog v-model="showDeleteDialog[room.room_id]" max-width="300">
+                <template #activator="{ on, attrs }">
+                  <v-btn v-show="deleteMode" color="error" text v-bind="attrs" v-on="on">
+                    删除
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-card-title class="text-h5">
+                    删除“{{ room.name }}”？
+                  </v-card-title>
+                  <v-card-subtitle>
+                    输入房间名称以确认。
+                  </v-card-subtitle>
+                  <v-card-text>
+                    <v-text-field
+                      v-model="deleteConfirm"
+                      color="warning"
+                      :rules="[value => value === room.name || '房间名称不匹配',]"
+                    />
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn text color="primary" @click="showDeleteDialog[room.room_id]=false">
+                      取消
+                    </v-btn>
+                    <v-btn
+                      text
+                      color="error"
+                      :disabled="deleteConfirm !== room.name"
+                      @click="onRoomDeletion(room.room_id)"
+                    >
+                      删除
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -133,16 +168,28 @@ import { components } from '~/openapi/openapi'
 
 type Room = components['schemas']['Room']
 
+interface RoomListPageData {
+  roomList: Room[]
+  fab: boolean
+  deleteMode: boolean
+  showAddRoomDialog: boolean
+  newRoomName: string
+  roomToDelete: Room | null
+  deleteConfirm?: string
+  showDeleteDialog: Record<string, boolean | undefined>
+}
+
 export default Vue.extend({
-  data (): { roomList: Room[], fab: boolean, deleteMode: boolean,
-             showAddRoomDialog: boolean, newRoomName: string, roomToDelete: Room | null } {
+  data (): RoomListPageData {
     return {
       roomList: [],
       newRoomName: '新房间',
       fab: false,
       deleteMode: false,
       showAddRoomDialog: false,
-      roomToDelete: null
+      roomToDelete: null,
+      deleteConfirm: '',
+      showDeleteDialog: {}
     }
   },
   async fetch () {
@@ -153,6 +200,14 @@ export default Vue.extend({
     async onRoomCreation () {
       this.showAddRoomDialog = false // first, hide the dialog
       await this.$api['/room/'].post({ name: this.newRoomName })
+      this.$toast.success('房间创建成功')
+      this.$fetch()
+    },
+    async onRoomDeletion (roomId: string) {
+      this.showDeleteDialog[roomId] = false
+      this.deleteConfirm = ''
+      await this.$api['/room/{room_id}'].delete(roomId)
+      this.$toast.success('房间删除成功')
       this.$fetch()
     }
   }

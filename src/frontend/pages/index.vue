@@ -86,7 +86,7 @@ export default Vue.extend({
   methods: {
     checkAndPromptInvalidToken () {
       if (this.$route.query.invalid_token) {
-        this.$toast.error('未登录或凭据过期，请重新登录！', { y: 'top' })
+        this.$toast.error('未登录或凭据过期，请重新登录！')
         this.$router.push('/')
       }
     },
