@@ -61,8 +61,8 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot create the room in database.')
-    await asyncio.sleep(5)
     resp = await notify_controller_on_update(room_id, room)
+    # if resp 404, maybe retry later
     if not resp.is_success:
         async def rollback_op():
             delete_result = await db['room'].delete_one({'_id': insert_result.inserted_id})
