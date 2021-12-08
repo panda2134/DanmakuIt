@@ -9,8 +9,11 @@
   </v-container>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue'
+
+export default Vue.extend({
+  layout: 'fullpage',
   data () {
     return {
       error: false
@@ -23,9 +26,10 @@ export default {
       setTimeout(() => { this.$router.push('/') }, 1000)
     } else {
       this.$axios.setToken(token, 'Bearer')
+      // eslint-disable-next-line no-console
       console.log('Token:', token)
       this.$router.push('/')
     }
   }
-}
+})
 </script>

@@ -3,7 +3,7 @@
     <v-container class="d-flex flex-column justify-center align-center" style="height: 100vh">
       <header class="d-flex flex-row align-center my-8">
         <!--suppress CheckImageSize -->
-        <img src="../assets/icon.png" height="160" width="160" alt="icon">
+        <img src="/favicon.png" height="160" width="160" alt="icon">
         <h1 class="ml-12">
           弹幕一下
         </h1>
@@ -14,7 +14,7 @@
             <v-btn
               depressed
               rounded
-              color="secondary"
+              color="primary"
               class="mx-2"
               v-bind="attrs"
               v-on="on"
@@ -25,41 +25,81 @@
           <v-card>
             <v-card-title>登录</v-card-title>
             <v-card-text>
-              <v-btn depressed class="mr-2 my-1" color="secondary" @click="$api['/user/social-login/github/login'].get()">
+              <v-btn depressed class="mr-2 my-1" color="primary" @click="$api['/user/social-login/github/login'].get()">
                 <v-icon>mdi-github</v-icon>
                 采用GitHub登录
               </v-btn>
-              <v-btn depressed class="mr-2 my-1" color="secondary" @click="$api['/user/social-login/gitlab/login'].get()">
+              <v-btn depressed class="mr-2 my-1" color="primary" @click="$api['/user/social-login/gitlab/login'].get()">
                 <v-icon>mdi-gitlab</v-icon>
                 采用GitLab登录
               </v-btn>
-              <v-btn depressed class="mr-2 my-1" color="secondary" @click="$api['/user/social-login/gitlab3rd/login'].get(S)">
+              <v-btn depressed class="mr-2 my-1" color="primary" @click="$api['/user/social-login/gitlab3rd/login'].get(S)">
                 <v-icon>mdi-gitlab</v-icon>
                 采用校内GitLab登录
+              </v-btn>
+              <v-btn v-if="!commitSHA" depressed class="mr-2 my-1" color="secondary" @click="loadTestToken">
+                [测试用]点击载入测试Token
               </v-btn>
             </v-card-text>
           </v-card>
         </v-dialog>
-        <v-btn rounded outlined color="secondary" class="mx-2">
-          管理房间
-        </v-btn>
+        <nuxt-link v-slot="{ navigate }" to="/my-room" custom>
+          <v-btn rounded outlined color="primary" class="mx-2" @click="navigate">
+            管理房间
+          </v-btn>
+        </nuxt-link>
       </div>
     </v-container>
     <v-footer fixed>
-      &copy; {{ new Date().getFullYear() }}, DanmakuIt Team. Licensed under GPLv3. Commit {{ commitSHA }}.
+      &copy; {{ new Date().getFullYear() }}, DanmakuIt Team. Licensed under GPLv3.
+      <span v-if="commitSHA">
+        Commit <a :href="commitURL" target="_blank">{{ shortSHA }}</a>.
+      </span>
+      <span v-else class="light-blue--text text-uppercase">
+        Development environment.
+      </span>
     </v-footer>
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue'
+
+export default Vue.extend({
   layout: 'fullpage',
   data () {
     return {
-      commitSHA: process.env.GITHUB_SHA || '#dev#'
+      commitSHA: process.env.GITHUB_SHA || ''
+    }
+  },
+  computed: {
+    shortSHA (): string {
+      return (this.commitSHA).slice(0, 8)
+    },
+    commitURL (): string {
+      return `https://github.com/panda2134/DanmakuIt/commit/${this.commitSHA}`
+    }
+  },
+  mounted () {
+    this.checkAndPromptInvalidToken()
+  },
+  methods: {
+    checkAndPromptInvalidToken () {
+      if (this.$route.query.invalid_token) {
+        this.$toast.error('未登录或凭据过期，请重新登录！')
+        this.$router.push('/')
+      }
+    },
+    loadTestToken () {
+      if (process.env.TEST_TOKEN) {
+        this.$axios.setToken(`Bearer ${process.env.TEST_TOKEN}`)
+        this.$toast.success('已经载入测试Token')
+      } else {
+        this.$toast.error('测试Token未找到')
+      }
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>
@@ -67,6 +107,6 @@ h1 {
   font-size: 72px;
   font-family: "ZCOOLKuaiLe", sans-serif;
   font-weight: 400;
-  color: var(--v-primary-base);
+  color: var(--v-secondary-base);
 }
 </style>
