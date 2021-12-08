@@ -105,7 +105,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 h1 {
   font-size: 72px;
-  font-family: "ZCOOLKuaiLe", sans-serif;
+  font-family: "ZCOOL KuaiLe", cursive;
   font-weight: 400;
   color: var(--v-secondary-base);
 }

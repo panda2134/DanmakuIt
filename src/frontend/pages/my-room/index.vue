@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h1 class="text-h4">
+    <h1 class="text-h5">
       我的房间
     </h1>
     <v-fab-transition>
@@ -101,9 +101,11 @@
               创建时间：{{ (new Date(room.creation_time + '+00:00')).toLocaleString() }}
             </v-card-text>
             <v-card-actions>
-              <v-btn color="primary" text>
-                管理
-              </v-btn>
+              <nuxt-link v-slot="{ navigate }" custom :to="`/my-room/${room.room_id}`">
+                <v-btn color="primary" text @click="navigate">
+                  管理
+                </v-btn>
+              </nuxt-link>
               <v-dialog v-model="showDeleteDialog[room.room_id]" max-width="300">
                 <template #activator="{ on, attrs }">
                   <v-btn v-show="deleteMode" color="error" text v-bind="attrs" v-on="on">

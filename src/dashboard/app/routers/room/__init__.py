@@ -3,13 +3,16 @@ from typing import Any, Callable, Coroutine, Sequence
 
 import asyncio
 from datetime import datetime
+from app.utils import room
 from arq.connections import ArqRedis
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from httpx import HTTPError
+
 from app.bgtasks import get_bg_queue
 
-from app.models.room import Room, RoomCreation, RoomUpdate, RoomDeletal
+from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse
 from app.models.user import User
 from app.utils.jwt import get_current_user
 from app.utils.room import generate_room_id, readable_sha256, push_setting
@@ -31,7 +34,7 @@ async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
 
 
 @router.post('/', response_model=Room)
-async def create_room(room: RoomCreation, user: User = Depends(get_current_user)):
+async def create_room(room: RoomNameModel, user: User = Depends(get_current_user)):
     room_id = generate_room_id()
     resp = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
@@ -114,7 +117,7 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
     return updated_room
 
 
-@router.delete('/{room_id}', response_model=RoomDeletal)
+@router.delete('/{room_id}', response_model=RoomIdModel)
 async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
@@ -145,3 +148,43 @@ async def client_login_room(room_id: str, passcode: HTTPAuthorizationCredentials
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid room passcode.')
 
     return room
+
+
+@router.get('/{room_id}/qrcode', response_model=RoomQRCodeResponse,
+            description='Set `room_passcode` in HTTP Bearer;' +
+            'This is provided for clients so that they can fetch the QR code without JWT.')
+async def get_room_qrcode(room_id: str, passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
+    doc = await get_db()['room'].find_one({'room_id': room_id})
+    if doc is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+
+    # fetch QR Code from WeChat Official Account API
+    room = Room.parse_obj(doc)
+    if room.wechat_access_token is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail='No WeChat access token.')
+    try:
+        res = await http_client.post(f'https://api.weixin.qq.com/cgi-bin/qrcode/create',
+                                     json={'action_name': 'QR_STR_SCENE',
+                                           'expire_seconds': 2592000,
+                                           'action_info': {'scene': {'scene_str': room_id}}},
+                                     params={'access_token': room.wechat_access_token})
+        res.raise_for_status()
+        return res.json()
+    except HTTPError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot get QR code from WeChat.')
+
+
+@router.post('/{room_id}/fetch-subscribers', response_model=RoomIdModel,
+            description='Fetch the user information of all subscribers.'+
+                        'Returns room_id in JSON when the fetch process starts.')
+async def fetch_subscribers_of_room(room_id: str, room_query: dict = Depends(room_with_auth)):
+    if not await get_db()['room'].count_documents(room_query, limit=1):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+    try:
+        await http_client.post(f'{app_config.controller_url}/feed/{room_id}')
+        return {'room_id': room_id}
+    except HTTPError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot start fetching subscribers.')
