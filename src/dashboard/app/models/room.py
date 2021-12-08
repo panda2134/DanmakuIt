@@ -6,8 +6,15 @@ from datetime import datetime
 class RoomCreation(BaseModel):
     name: str
 
+
 class RoomDeletal(BaseModel):
     room_id: str
+
+
+class RoomQRCodeResponse(BaseModel):
+    ticket: str
+    expire_seconds: int
+    url: str
 
 
 class Room(RoomCreation):
@@ -25,6 +32,8 @@ class Room(RoomCreation):
     wechat_encryption_key: Optional[str]
     wechat_appid: Optional[str]
     wechat_appsecret: Optional[str]
+    wechat_access_token: Optional[str]  # for QR code generation
+    user_danmaku_colors: Optional[List[str]]
 
 
 class RoomUpdate(BaseModel):
@@ -37,3 +46,4 @@ class RoomUpdate(BaseModel):
     wechat_encryption_key: Optional[str]
     wechat_appid: Optional[str]
     wechat_appsecret: Optional[str]
+    user_danmaku_colors: Optional[List[str]]
