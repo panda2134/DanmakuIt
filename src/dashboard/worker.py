@@ -12,8 +12,10 @@ import httpx
 from pydantic import BaseModel
 from app.bgtasks import redis_settings
 from app.db import get_db
-from app.models.room import Room
+
 from app.config import app_config
+from app.models.room import Room
+from app.utils.room import push_setting
 
 
 logger = getLogger('bgtasks').getChild('wechat')
@@ -24,6 +26,13 @@ class WeChatAccessTokenReply(BaseModel):
     access_token: str
     expires_in: int
 
+async def resume_controller(ctx: Mapping[str, Any]):
+    async for room_obj in get_db()['room'].find():
+        room = Room.parse_obj(room_obj)
+        resp = await push_setting(ctx['http_client'], room.room_id, room, mode='resume')
+        while not resp.is_success:
+            await asyncio.sleep(2.0)
+            resp = await push_setting(ctx['http_client'], room.room_id, room, mode='resume')
 
 async def refresh_wechat_access_token_all(ctx: Mapping[str, Any]):
     bg_queue: ArqRedis = ctx['redis']
@@ -80,6 +89,7 @@ async def startup(ctx):
     ctx['http_client'] = httpx.AsyncClient()
     bg_queue: ArqRedis = ctx['redis']
     await bg_queue.enqueue_job('refresh_wechat_access_token_all')
+    await bg_queue.enqueue_job('resume_controller')
 
 async def shutdown(ctx):
     http_client: httpx.AsyncClient = ctx['http_client']
