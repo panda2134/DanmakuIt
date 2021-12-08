@@ -23,7 +23,11 @@
                 <v-img
                   :src="user.avatar"
                   :alt="user.username"
-                />
+                >
+                  <template #placeholder>
+                    <v-progress-circular indeterminate color="primary" />
+                  </template>
+                </v-img>
               </v-list-item-avatar>
               <v-list-item-content>
                 <v-list-item-title class="text-h6">
