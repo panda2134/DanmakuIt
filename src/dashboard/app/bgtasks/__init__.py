@@ -1,12 +1,10 @@
-from typing import Optional
 from arq import create_pool
-from arq.connections import ArqRedis, RedisSettings
+from arq.connections import RedisSettings
 
-bg_queue: Optional[ArqRedis] = None
+from app.utils import async_cache
+
 redis_settings = RedisSettings(host='redis')
 
+@async_cache
 async def get_bg_queue():
-  global bg_queue
-  if bg_queue is None:
-    bg_queue = await create_pool(redis_settings)
-  return bg_queue
+    return await create_pool(redis_settings)
