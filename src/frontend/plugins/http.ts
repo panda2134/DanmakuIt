@@ -68,6 +68,11 @@ function getAPI ({ $axios, $config }: Context): APIType {
     '/room/': {
       get: () => $axios.$get('/room/'),
       post: roomCreation => $axios.$post('/room/', roomCreation)
+    },
+    '/room/{room_id}/qrcode': {
+      get: (roomId: string, roomPasscode: string) => $axios.$get(`/room/${roomId}/qrcode`, {
+        headers: { Authorization: `Bearer ${roomPasscode}` }
+      })
     }
   }
 }
@@ -87,6 +92,8 @@ declare module '@nuxt/types' {
   }
 }
 
+const PATH_SUFFIX_WITHOUT_JWT_CHECK = ['/client-login']
+
 const myPlugin: Plugin = (context, inject) => {
   const api = getAPI(context)
   context.$api = api
@@ -94,6 +101,13 @@ const myPlugin: Plugin = (context, inject) => {
   context.$axios.onResponseError((err) => {
     const statusCode = err.response?.status ?? 0
     if (statusCode === 401 || (statusCode === 403 && err.response?.data.detail === 'Not authenticated')) {
+      console.log(err)
+      for (const suffix of PATH_SUFFIX_WITHOUT_JWT_CHECK) {
+        if (err.response?.config?.url?.endsWith(suffix)) {
+          console.log('Skip JWT expiration check')
+          throw err
+        }
+      }
       // token is invalid now!
       context.$axios.setToken(false)
       context.redirect('/', { invalid_token: 'true' })

@@ -38,6 +38,9 @@ export interface paths {
     /** uid, room_id and creation_time cannot be altered */
     patch: operations["modify_room_room__room_id__patch"];
   };
+  "/room/{room_id}/qrcode": {
+    get: operations["get_room_qrcode_room__room_id__qrcode_get"];
+  };
   "/room/{room_id}/client-login": {
     /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
     get: operations["client_login_room_room__room_id__client_login_get"];
@@ -64,12 +67,19 @@ export interface components {
       wechat_encryption_key?: string;
       wechat_appid?: string;
       wechat_appsecret?: string;
+      wechat_access_token?: string;
+      user_danmaku_colors?: string[];
     };
     RoomCreation: {
       name: string;
     };
     RoomDeletal: {
       room_id: string;
+    };
+    RoomQRCodeResponse: {
+      ticket: string;
+      expire_seconds: number;
+      url: string;
     };
     RoomUpdate: {
       name?: string;
@@ -81,6 +91,7 @@ export interface components {
       wechat_encryption_key?: string;
       wechat_appid?: string;
       wechat_appsecret?: string;
+      user_danmaku_colors?: string[];
     };
     User: {
       username: string;
@@ -284,6 +295,27 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["RoomUpdate"];
+      };
+    };
+  };
+  get_room_qrcode_room__room_id__qrcode_get: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RoomQRCodeResponse"];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
       };
     };
   };

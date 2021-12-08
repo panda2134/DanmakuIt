@@ -12,7 +12,7 @@
           outlined
           readonly
         >
-          <template #append-outer>
+          <template #append>
             <v-btn
               icon
               depressed
@@ -30,7 +30,7 @@
           outlined
           readonly
         >
-          <template #append-outer>
+          <template #append>
             <v-btn
               icon
               depressed

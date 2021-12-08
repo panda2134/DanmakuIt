@@ -1,13 +1,36 @@
 <template>
   <div id="danmakuWall" class="d-flex flex-column justify-space-between" style="height: 100vh">
+    <v-dialog v-model="showPasscodeDialog" max-width="600" persistent>
+      <v-card>
+        <v-card-title>
+          输入房间密码
+        </v-card-title>
+        <v-card-subtitle>
+          {{ passcodeLength }} 位字母数字组合
+        </v-card-subtitle>
+        <v-card-text>
+          <v-otp-input v-model="passcodeInput" :plain="passcodeLength > 8" :length="passcodeLength" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text color="primary" @click="$fetch">
+            登录
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-row justify-lg="space-between" justify="end" class="flex-grow-0">
       <v-col xl="8" cols="12">
         <h1 class="display-3">
           {{ room.name }}
         </h1>
       </v-col>
-      <v-col cols="4">
-        <img width="100px" height="100px" src="~assets/qr.svg" alt="QR Placeholder" class="float-end">
+      <v-col xl="4" cols="12">
+        <v-img :src="qrCodePath" width="100px" height="100px" class="float-end">
+          <template #placeholder>
+            <img width="100px" height="100px" src="~assets/qr.svg" alt="QR Placeholder">
+          </template>
+        </v-img>
       </v-col>
     </v-row>
     <div ref="danmakuBox" class="flex-grow-1 overflow-y-hidden d-flex flex-column justify-end">
@@ -56,7 +79,10 @@ interface WallData {
   danmakuList: Danmaku[];
   availableSlotCount: number;
   ws: WebSocket | null;
-  retryHandle: ReturnType<typeof setInterval>
+  retryHandle: ReturnType<typeof setInterval>;
+  passcodeInput: string;
+  showPasscodeDialog: boolean;
+  qrCodeTicket: string;
 }
 interface DanmakuEvent {
   messageId: string;
@@ -99,21 +125,36 @@ export default Vue.extend({
     return {
       room: emptyRoom,
       danmakuList: [],
-      availableSlotCount: 1,
+      availableSlotCount: 0,
       ws: null,
-      retryHandle: setInterval(() => {}, 1e10) // noop
+      retryHandle: setInterval(() => {}, 1e10), // noop
+      passcodeInput: '',
+      showPasscodeDialog: false,
+      qrCodeTicket: ''
     }
   },
   async fetch () {
     const roomId = this.$route.params.roomId
-    const roomPasscode = this.$route.query.code
-    // eslint-disable-next-line camelcase
-    this.room = await this.$api['/room/{room_id}/client-login'].get(roomId, roomPasscode)
-    // @ts-ignore
-    return this.initWebSocket()
+    const roomPasscode = this.passcodeInput || this.$route.query.code
+    try {
+      // eslint-disable-next-line camelcase
+      this.room = await this.$api['/room/{room_id}/client-login'].get(roomId, roomPasscode)
+      this.qrCodeTicket = (await this.$api['/room/{room_id}/qrcode'].get(roomId, roomPasscode)).ticket
+      // @ts-ignore
+      await this.initWebSocket()
+      this.showPasscodeDialog = false
+    } catch (e) {
+      // failed to do a "client login", ask the user to type passcode
+      this.$toast.error('客户端登录失败')
+      this.showPasscodeDialog = true
+    }
   },
   head: {
     title: '弹幕墙'
+  },
+  computed: {
+    passcodeLength () { return parseInt(process.env.ROOM_PASSCODE_LEN || '6') },
+    qrCodePath (): string { return `https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=${this.qrCodeTicket}` }
   },
   mounted () {
     this.updateAvailableSlotCount()
@@ -165,12 +206,12 @@ export default Vue.extend({
         return
       }
       const danmakuBox = (this.$refs.danmakuBox as HTMLDivElement)
-      const newCount = (danmakuBox.clientHeight / danmakuItemOuterHeight) | 0
+      const newCount = Math.max((danmakuBox.clientHeight / danmakuItemOuterHeight) | 0, 2)
       if (this.availableSlotCount < newCount) {
         this.danmakuList.splice(0, 0,
           ...Array.from(Array(newCount - this.availableSlotCount), getEmptyDanmaku))
       } else if (this.availableSlotCount > newCount) {
-        this.danmakuList.slice(newCount - this.availableSlotCount)
+        this.danmakuList.slice(-newCount)
       }
       this.availableSlotCount = newCount
     },

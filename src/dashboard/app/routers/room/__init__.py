@@ -116,29 +116,6 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
     return updated_room
 
 
-@router.get('/{room_id}/qrcode', response_model=RoomQRCodeResponse)
-async def get_room_qrcode(room_id: str, room_query: dict = Depends(room_with_auth)):
-    doc = await get_db()['room'].find_one(room_query)
-    if doc is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    # fetch QR Code from WeChat Official Account API
-    room = Room.parse_obj(doc)
-    if room.wechat_access_token is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                            detail='No WeChat access token.')
-    try:
-        res = await http_client.post(f'https://api.weixin.qq.com/cgi-bin/qrcode/create',
-                                     json={'action_name': 'QR_STR_SCENE',
-                                           'expire_seconds': 2592000,
-                                           'action_info': {'scene': {'scene_str': room_id}}},
-                                     params={'access_token': room.wechat_access_token})
-        res.raise_for_status()
-        return res.json()
-    except HTTPError as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail=f'Cannot get QR code from WeChat.')
-
-
 @router.delete('/{room_id}', response_model=RoomDeletal)
 async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
@@ -170,3 +147,29 @@ async def client_login_room(room_id: str, passcode: HTTPAuthorizationCredentials
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid room passcode.')
 
     return room
+
+
+@router.get('/{room_id}/qrcode', response_model=RoomQRCodeResponse,
+            description='Set `room_passcode` in HTTP Bearer;' +
+            'This is provided for clients so that they can fetch the QR code without JWT.')
+async def get_room_qrcode(room_id: str, passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
+    doc = await get_db()['room'].find_one({'room_id': room_id})
+    if doc is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+
+    # fetch QR Code from WeChat Official Account API
+    room = Room.parse_obj(doc)
+    if room.wechat_access_token is None:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail='No WeChat access token.')
+    try:
+        res = await http_client.post(f'https://api.weixin.qq.com/cgi-bin/qrcode/create',
+                                     json={'action_name': 'QR_STR_SCENE',
+                                           'expire_seconds': 2592000,
+                                           'action_info': {'scene': {'scene_str': room_id}}},
+                                     params={'access_token': room.wechat_access_token})
+        res.raise_for_status()
+        return res.json()
+    except HTTPError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot get QR code from WeChat.')
