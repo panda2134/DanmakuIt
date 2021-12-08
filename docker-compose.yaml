@@ -71,7 +71,7 @@ services:
       - "27017"
 
   redis:
-    image: redis:6.2
+    image: redis:6.2.6-alpine3.15
 
   nginx:
     build:
