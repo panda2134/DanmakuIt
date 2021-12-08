@@ -1,3 +1,4 @@
+import asyncio
 from hashlib import sha1, sha256
 from binascii import b2a_base64
 import json
@@ -5,7 +6,7 @@ from xml.etree import ElementTree
 from time import time
 import os
 
-from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence
+from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence, Union
 
 from cryptography.hazmat.primitives import serialization
 import jwt
@@ -66,7 +67,9 @@ def get_user_producer(room: str):
     if room not in user_producers:
         user_producers[room] = pulsar_client.create_producer(
             f'persistent://public/default/user_{room}',
-            block_if_queue_full=True
+            block_if_queue_full=True,
+            batching_enabled=True,
+            batching_max_publish_delay_ms=100
         )
     return user_producers[room]
 
@@ -154,11 +157,11 @@ async def feed_post(request: Request, room: str):
         return text('room not found', status=404)
     if room not in token_cache:
         return text('room access token not found', status=403)
+
+    token = token_cache[room]
     resp = await http_client.get(
         'https://api.weixin.qq.com/cgi-bin/user/get',
-        params={
-            'access_token': token_cache[room]
-        }
+        params={'access_token': token}
     )
     # TODO: > 10000 user, nextopenid
     if resp.status_code != 200:
@@ -167,9 +170,38 @@ async def feed_post(request: Request, room: str):
     if 'errcode' in resp_obj:
         return text('Error fetch from wechat', status=500)
     users: Sequence[str] = resp_obj['data']['openid']
+
+    producer = get_user_producer(room)
     async def feed():
-        for openid in users:
-            pass
+        batch_size = 100
+        for i in range(0, len(users), batch_size):
+            def batchget():
+                return http_client.post(
+                    'https://api.weixin.qq.com/cgi-bin/user/info/batchget',
+                    json={'user_list':[{'openid': openid} for openid in users[i:i + batch_size]]},
+                    params={'access_token': token}
+                )
+            resp = await batchget()
+            while not resp.is_success:
+                await asyncio.sleep(2.0)
+                resp = await batchget()
+            resp_obj: Mapping[str, Any] = resp.json()
+            if 'errorcode' in resp_obj:
+                break # TODO: error handling
+            user_info_list: Sequence[Mapping[str, Union[str, Any]]] = resp_obj['user_info_list']
+            data_list = [
+                dict(
+                    id='user@wechat:' + user_info['openid'],
+                    nickname=user_info['nickname'],
+                    headimgurl=user_info['headimgurl']
+                ) for user_info in user_info_list if user_info['subscribe']
+            ]
+            for data in data_list:
+                producer.send_async(
+                    b'\x00\x00\x02',
+                    callback=lambda *_: None,
+                    properties=data
+                )
     app.add_task(feed())
     return text('success')
 
