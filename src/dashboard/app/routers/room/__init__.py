@@ -42,7 +42,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     resp = await http_client.post(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='Cannot create the room in controller.')
+                            detail=f'Cannot create the room in controller. {resp.content}')
 
     pulsar_jwt = resp.text
     # -1 to skip paddings in base64
@@ -69,7 +69,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
 
         await rollback(rollback_op)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='Cannot initialize setting the room in controller.')
+                            detail=f'Cannot initialize setting the room in controller. {resp.content}')
 
     return room
 
