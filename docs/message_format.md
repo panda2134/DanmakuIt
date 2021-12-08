@@ -39,7 +39,7 @@ pulsar指pulsar容器，在Docker外部访问使用localhost
     {
         'id': 'user@wechat:{wx_openid}', # 管理员以admin:开头
         'nickname': '微信昵称',
-        'headimgurl': 'http://thirdwx.qlogo.cn/mmopen/{some_hash}' # 管理员为base64编码
+        'headimgurl': 'http://thirdwx.qlogo.cn/mmopen/{some_hash}/0' # 管理员为base64编码
     },
     'publishTime': '2021-11-21T10:56:25.798Z',
     'redeliveryCount': 0,
