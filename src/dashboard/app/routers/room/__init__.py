@@ -24,7 +24,7 @@ router = APIRouter(tags=['room'])
 
 def notify_controller_on_update(room_id: str, room: Room):
     return http_client.put(f'{app_config.controller_url}/setting/{room_id}',
-                            json=room.dict(include={'remote_censor', 'keyword_blacklist'}))
+                            json=room.dict(include={'danmaku_enabled', 'remote_censor', 'keyword_blacklist'}))
 
 
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
@@ -61,6 +61,7 @@ async def create_room(room: RoomCreation, user: User = Depends(get_current_user)
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='Cannot create the room in database.')
+    await asyncio.sleep(5)
     resp = await notify_controller_on_update(room_id, room)
     if not resp.is_success:
         async def rollback_op():
