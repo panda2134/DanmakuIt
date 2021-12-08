@@ -190,6 +190,8 @@ async def port_post(request: Request, room: str):
     
     if room not in room_exist_cache:
         return reply_xml(room_not_found)
+    if room not in room_enable_cache:
+        return reply_xml(room_disable)
     
     message_type = data.get('MsgType', '')
     if message_type not in {'text', 'event'}:
