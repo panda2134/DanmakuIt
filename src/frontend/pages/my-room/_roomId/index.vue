@@ -9,12 +9,14 @@
       @room-update="$fetch"
     />
     <wechat-official-account-info-card
+      class="mb-5"
       :room-id="room.room_id"
       :initial-wechat-appid="room.wechat_appid"
       :initial-wechat-app-secret="room.wechat_appsecret"
       :initial-wechat-token="room.wechat_token"
       @room-update="$fetch"
     />
+    <fetch-subscriber-card :room-id="room.room_id" />
   </v-container>
 </template>
 

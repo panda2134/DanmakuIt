@@ -73,7 +73,7 @@
           新房间名称
         </v-card-title>
         <v-card-text>
-          <v-text-field v-model="newRoomName" :rules="[value => (value && value.length) || '不能为空']" clearable />
+          <v-text-field v-model="newRoomName" :rules="[value => (value && value.length) ? true : '不能为空']" clearable />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
