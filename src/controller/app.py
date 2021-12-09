@@ -151,6 +151,41 @@ async def room_post(request: Request, room: str):
     return text(token)
 
 
+async def fetch_users(room: str, users: Sequence[str]):
+    token = token_cache[room]
+    producer = get_user_producer(room)
+
+    def batch_get_user_info():
+        return http_client.post(
+            'https://api.weixin.qq.com/cgi-bin/user/info/batchget',
+            json={'user_list': [{'openid': openid} for openid in users]},
+            params={'access_token': token}
+        )
+
+    resp = await batch_get_user_info()
+    while not resp.is_success:
+        await asyncio.sleep(2.0)
+        resp = await batch_get_user_info()
+    resp_obj: Mapping[str, Any] = resp.json()
+    if 'errorcode' in resp_obj:
+        return False  # TODO: error handling
+    user_info_list: Sequence[Mapping[str, Union[str, Any]]] = resp_obj['user_info_list']
+    data_list = [
+        dict(
+            id='user@wechat:' + user_info['openid'],
+            nickname=user_info['nickname'],
+            headimgurl=user_info['headimgurl']
+        ) for user_info in user_info_list if user_info['subscribe']
+    ]
+    for data in data_list:
+        producer.send_async(
+            b'\x00\x00\x02',
+            callback=lambda *_: None,
+            properties=data
+        )
+    return True
+
+
 @app.post('/feed/<room:str>')  # fetch and push user info
 async def feed_post(request: Request, room: str):
     if room not in room_exist_cache:
@@ -171,38 +206,12 @@ async def feed_post(request: Request, room: str):
         return text('Error fetch from wechat', status=500)
     users: Sequence[str] = resp_obj['data']['openid']
 
-    producer = get_user_producer(room)
-
     async def feed():
         batch_size = 100
         for i in range(0, len(users), batch_size):
-            def batchget():
-                return http_client.post(
-                    'https://api.weixin.qq.com/cgi-bin/user/info/batchget',
-                    json={'user_list': [{'openid': openid} for openid in users[i:i + batch_size]]},
-                    params={'access_token': token}
-                )
-            resp = await batchget()
-            while not resp.is_success:
-                await asyncio.sleep(2.0)
-                resp = await batchget()
-            resp_obj: Mapping[str, Any] = resp.json()
-            if 'errorcode' in resp_obj:
-                break  # TODO: error handling
-            user_info_list: Sequence[Mapping[str, Union[str, Any]]] = resp_obj['user_info_list']
-            data_list = [
-                dict(
-                    id='user@wechat:' + user_info['openid'],
-                    nickname=user_info['nickname'],
-                    headimgurl=user_info['headimgurl']
-                ) for user_info in user_info_list if user_info['subscribe']
-            ]
-            for data in data_list:
-                producer.send_async(
-                    b'\x00\x00\x02',
-                    callback=lambda *_: None,
-                    properties=data
-                )
+            res = await fetch_users(room, users[i:i + batch_size])
+            if not res:
+                break
     app.add_task(feed())
     return text('success')
 
@@ -255,8 +264,7 @@ async def port_post(request: Request, room: str):
                 <MsgType><![CDATA[text]]></MsgType>
                 <Content><![CDATA[{reply_message}]]></Content>
             </xml>''',
-                    content_type='text/xml'
-                    )
+                    content_type='text/xml')
 
     if room not in room_exist_cache:
         return reply_xml(room_not_found)
@@ -268,8 +276,9 @@ async def port_post(request: Request, room: str):
         return reply_xml(not_support)
 
     if message_type == 'event':
-        # TODO
         event = data.get('Event', '')
+        if event == 'subscribe':
+            app.add_task(fetch_users(room, [from_user]))
         return text('success')
 
     content = data.get('Content', '')
