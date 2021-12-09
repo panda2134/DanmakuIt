@@ -131,19 +131,29 @@ async def room_post(request: Request, room: str):
     prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
     resp = await http_client.put(f'{prefix}/{room}')
     if resp.status_code not in {204, 409}:
-        return text(f'create danmaku topic error: {resp.status_code}', status=resp.status_code)
+        return text(f'create danmaku topic error: {resp.status_code}', status=500)
 
     resp = await http_client.put(f'{prefix}/user_{room}')
     if resp.status_code not in {204, 409}:
-        return text(f'create user topic error: {resp.status_code}', status=resp.status_code)
+        return text(f'create user topic error: {resp.status_code}', status=500)
+    
+    infinite_retention = dict(retentionTimeInMinutes=-1, retentionSizeInMB=-1)
+
+    resp = await http_client.post(f'{prefix}/{room}/retention', json=infinite_retention)
+    if not resp.is_success:
+        return text(text=f'danmaku topic set retention error: {resp.status_code}', status=500)
+
+    resp = await http_client.post(f'{prefix}/user_{room}/retention', json=infinite_retention)
+    if not resp.is_success:
+        return text(text=f'user topic set retention error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/{room}/permissions/display_{room}', json=['consume'])
     if resp.status_code != 204:
-        return text(text=f'grant permission error: {resp.status_code}', status=resp.status_code)
+        return text(text=f'danmaku topic grant permission error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/user_{room}/permissions/display_{room}', json=['consume'])
     if resp.status_code != 204:
-        return text(text=f'grant permission error: {resp.status_code}', status=resp.status_code)
+        return text(text=f'user topic grant permission error: {resp.status_code}', status=500)
 
     await redis.publish('room_exist', f'{room}:1')
 
