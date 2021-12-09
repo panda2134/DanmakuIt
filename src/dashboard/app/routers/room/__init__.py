@@ -24,6 +24,7 @@ from app.http_client import http_client
 
 router = APIRouter(tags=['room'])
 
+
 async def rollback(rollback_op: Callable[[], Coroutine[Any, Any, bool]]):
     for i in range(app_config.max_rollback_retry):
         if await rollback_op():
