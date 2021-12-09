@@ -1,5 +1,5 @@
 import { Context, Plugin } from '@nuxt/types'
-import { paths } from '~/openapi/openapi'
+import { components, paths } from '~/openapi/openapi'
 
 type APIGetType<Q extends paths[keyof paths]> = Q extends Record<'get', any> ? {
   get: (...args: any[]) => Promise<Q['get']['responses'] extends {200: any} ?
@@ -18,9 +18,12 @@ type APIPatchType<Q extends paths[keyof paths]> = Q extends Record<'patch', any>
 } : {};
 
 type APIPostType<Q extends paths[keyof paths]> = Q extends Record<'post', any> ? {
-  post: (postBody: Q['post']['requestBody']['content']['application/json'], ...args: any[]) =>
+  post: ((postBody: Q['post']['requestBody']['content']['application/json'], ...args: any[]) =>
     Promise<Q['post']['responses'] extends {200: any} ?
-    Q['post']['responses'][200]['content']['application/json'] : void>;
+    Q['post']['responses'][200]['content']['application/json'] : void>) |
+    ((...args: any[]) =>
+    Promise<Q['post']['responses'] extends {200: any} ?
+      Q['post']['responses'][200]['content']['application/json'] : void>);
 } : {};
 
 type APIType = {
@@ -67,12 +70,15 @@ function getAPI ({ $axios, $config }: Context): APIType {
     },
     '/room/': {
       get: () => $axios.$get('/room/'),
-      post: roomCreation => $axios.$post('/room/', roomCreation)
+      post: (roomCreation: components['schemas']['RoomNameModel']) => $axios.$post('/room/', roomCreation)
     },
     '/room/{room_id}/qrcode': {
       get: (roomId: string, roomPasscode: string) => $axios.$get(`/room/${roomId}/qrcode`, {
         headers: { Authorization: `Bearer ${roomPasscode}` }
       })
+    },
+    '/room/{room_id}/fetch-subscribers': {
+      post: (roomId: string) => $axios.$post(`/room/${roomId}/fetch-subscribers`)
     }
   }
 }
@@ -101,9 +107,11 @@ const myPlugin: Plugin = (context, inject) => {
   context.$axios.onResponseError((err) => {
     const statusCode = err.response?.status ?? 0
     if (statusCode === 401 || (statusCode === 403 && err.response?.data.detail === 'Not authenticated')) {
+      // eslint-disable-next-line no-console
       console.log(err)
       for (const suffix of PATH_SUFFIX_WITHOUT_JWT_CHECK) {
         if (err.response?.config?.url?.endsWith(suffix)) {
+          // eslint-disable-next-line no-console
           console.log('Skip JWT expiration check')
           throw err
         }

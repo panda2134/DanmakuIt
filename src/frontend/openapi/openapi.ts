@@ -46,6 +46,10 @@ export interface paths {
     /** Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
     get: operations["get_room_qrcode_room__room_id__qrcode_get"];
   };
+  "/room/{room_id}/fetch-subscribers": {
+    /** Fetch the user information of all subscribers.Returns room_id in JSON when the fetch process starts. */
+    post: operations["fetch_subscribers_of_room_room__room_id__fetch_subscribers_post"];
+  };
 }
 
 export interface components {
@@ -71,11 +75,11 @@ export interface components {
       wechat_access_token?: string;
       user_danmaku_colors?: string[];
     };
-    RoomCreation: {
-      name: string;
-    };
-    RoomDeletal: {
+    RoomIdModel: {
       room_id: string;
+    };
+    RoomNameModel: {
+      name: string;
     };
     RoomQRCodeResponse: {
       ticket: string;
@@ -226,7 +230,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["RoomCreation"];
+        "application/json": components["schemas"]["RoomNameModel"];
       };
     };
   };
@@ -261,7 +265,7 @@ export interface operations {
       /** Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["RoomDeletal"];
+          "application/json": components["schemas"]["RoomIdModel"];
         };
       };
       /** Validation Error */
@@ -333,6 +337,28 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["RoomQRCodeResponse"];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Fetch the user information of all subscribers.Returns room_id in JSON when the fetch process starts. */
+  fetch_subscribers_of_room_room__room_id__fetch_subscribers_post: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["RoomIdModel"];
         };
       };
       /** Validation Error */

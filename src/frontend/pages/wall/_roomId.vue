@@ -1,3 +1,4 @@
+<!--suppress JSUnusedGlobalSymbols -->
 <template>
   <div id="danmakuWall" class="d-flex flex-column justify-space-between" style="height: 100vh">
     <v-dialog v-model="showPasscodeDialog" max-width="600" persistent>
@@ -9,7 +10,13 @@
           {{ passcodeLength }} 位字母数字组合
         </v-card-subtitle>
         <v-card-text>
-          <v-otp-input v-model="passcodeInput" :plain="passcodeLength > 8" :length="passcodeLength" />
+          <v-otp-input
+            v-model="passcodeInput"
+            :plain="passcodeLength > 8"
+            :length="passcodeLength"
+            autofocus
+            @finish="$fetch"
+          />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -45,12 +52,19 @@
           light
           tile
         >
-          <h3 class="danmaku--user">
-            {{ danmaku.sender }}
-          </h3>
-          <div class="danmaku--content">
-            {{ danmaku.content }}
-          </div>
+          <v-list-item three-line>
+            <v-list-item-avatar tile size="100">
+              <v-img :src="getUserInfo(danmaku.sender).headimgurl" />
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <h3 class="danmaku--user">
+                {{ getUserInfo(danmaku.sender).nickname }}
+              </h3>
+              <div class="danmaku--content">
+                {{ danmaku.content }}
+              </div>
+            </v-list-item-content>
+          </v-list-item>
         </v-sheet>
       </transition-group>
     </div>
@@ -58,38 +72,29 @@
 </template>
 
 <script lang="ts">
-import { nanoid } from 'nanoid'
 import Vue from 'vue'
 import { throttle } from 'throttle-debounce'
 import { components } from '~/openapi/openapi'
+import {
+  Danmaku,
+  PulsarEvent,
+  DanmakuWallClient,
+  DanmakuUserInfoCacheClient,
+  UserInfo
+} from '~/websocket/DanmakuWallClient'
 
 type Room = components['schemas']['Room']
-interface Danmaku {
-  color: string;
-  content: string;
-  id: string;
-  permission: '0' | '1';
-  pos: 'rightleft' | 'top' | 'bottom',
-  sender: string;
-  size: string;
-}
 
 interface WallData {
   room: Room;
   danmakuList: Danmaku[];
   availableSlotCount: number;
-  wsDanmaku: WebSocket | null;
+  wsDanmaku: DanmakuWallClient | null;
+  userInfoCache: DanmakuUserInfoCacheClient | null;
   retryHandle: ReturnType<typeof setInterval>;
   passcodeInput: string;
   showPasscodeDialog: boolean;
   qrCodeTicket: string;
-}
-interface DanmakuEvent {
-  messageId: string;
-  payload: 'AAAA' | 'AAAB'; // new danmaku / danmaku update, respectively
-  properties: Danmaku;
-  publishTime: string; // Time in ISO8601
-  redeliveryCount: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -109,6 +114,8 @@ function getEmptyDanmaku (): Danmaku {
     size: '16pt'
   }
 }
+
+// noinspection JSUnusedGlobalSymbols
 export default Vue.extend({
   layout: 'fullpage',
   data (): WallData {
@@ -127,6 +134,7 @@ export default Vue.extend({
       danmakuList: [],
       availableSlotCount: 0,
       wsDanmaku: null,
+      userInfoCache: null,
       retryHandle: setInterval(() => {}, 1e10), // noop
       passcodeInput: '',
       showPasscodeDialog: false,
@@ -145,7 +153,25 @@ export default Vue.extend({
         this.$toast.error('获取二维码失败，可能是AppId/AppSecret填写错误')
       }
       // @ts-ignore
-      await this.initWebSocket()
+      await new Promise<void>((resolve, reject) => {
+        this.wsDanmaku = new DanmakuWallClient(
+          this.room.room_id,
+          this.room.pulsar_jwt,
+          this.handleDanmaku.bind(this),
+          () => {
+            this.$toast('连接成功', { color: 'green' })
+            this.userInfoCache = new DanmakuUserInfoCacheClient(this.room.room_id, this.room.pulsar_jwt)
+            resolve()
+          },
+          () => {
+            this.$toast('与服务器连接断开，重试中...', { color: 'red' })
+          },
+          (ev) => {
+            this.$toast('与服务器连接断开，重试中...', { color: 'red' })
+            reject(ev)
+          }
+        )
+      })
       this.showPasscodeDialog = false
     } catch (e) {
       // failed to do a "client login", ask the user to type passcode
@@ -165,47 +191,6 @@ export default Vue.extend({
     window.addEventListener('resize', throttle(300, this.updateAvailableSlotCount.bind(this)))
   },
   methods: {
-    initWebSocket () {
-      if (this.wsDanmaku) {
-        this.wsDanmaku.close()
-      }
-      const subscriptionName = 'DanmakuWall' + '~' + nanoid()
-      // eslint-disable-next-line camelcase
-      this.wsDanmaku = new WebSocket('wss://danmakuit.panda2134.site/websocket/' +
-        `consumer/persistent/public/default/${this.room.room_id}/${subscriptionName}?token=${this.room.pulsar_jwt}`)
-      this.wsDanmaku.onmessage = (msg) => {
-        const pulsarData = JSON.parse(msg.data)
-        if (pulsarData.messageId) {
-          // we've met a danmaku event
-          this.wsDanmaku!.send(JSON.stringify({ messageId: pulsarData.messageId })) // ACK
-          this.handleDanmaku(pulsarData)
-        }
-      }
-
-      return new Promise<void>((resolve, reject) => {
-        const closeHandler = () => {
-          clearInterval(this.retryHandle)
-          this.$toast('与服务器连接断开，重试中...', { color: 'red' })
-          this.wsDanmaku!.removeEventListener('close', closeHandler)
-          this.retryHandle = setInterval(() => {
-            this.initWebSocket()
-          }, 5000)
-        }
-        const errorHandler = (ev: Event) => {
-          closeHandler()
-          reject(ev)
-        }
-        this.wsDanmaku!.onerror = errorHandler
-        this.wsDanmaku!.onopen = () => {
-          clearInterval(this.retryHandle)
-          this.$toast('连接成功', { color: 'green' })
-          this.wsDanmaku!.removeEventListener('error', errorHandler)
-          this.setWebSocketKeepAlive()
-          this.wsDanmaku!.addEventListener('close', closeHandler)
-          resolve()
-        }
-      })
-    },
     updateAvailableSlotCount () {
       if (!this.$refs.danmakuBox) {
         return
@@ -220,18 +205,7 @@ export default Vue.extend({
       }
       this.availableSlotCount = newCount
     },
-    setWebSocketKeepAlive () {
-      const keepAlive = () => {
-        if (!this.wsDanmaku) {
-          throw new Error('WebSocket is still null!')
-        } else {
-          this.wsDanmaku.send(JSON.stringify({ type: 'isEndOfTopic' }))
-        }
-      }
-      keepAlive()
-      setInterval(keepAlive, 1000)
-    },
-    handleDanmaku (danmakuEvent: DanmakuEvent) {
+    handleDanmaku (danmakuEvent: PulsarEvent<Danmaku>) {
       if (danmakuEvent.properties.permission === '1') {
         this.danmakuList.splice(0, 1)
         this.danmakuList.push(danmakuEvent.properties)
@@ -240,6 +214,19 @@ export default Vue.extend({
         this.danmakuList = this.danmakuList.map(danmaku =>
           danmaku.id !== danmakuEvent.properties.id ? danmaku : getEmptyDanmaku())
       }
+    },
+    getUserInfo (id: string): UserInfo {
+      const anonymousUser = {
+        id: 'anonymous',
+        nickname: '神秘人',
+        headimgurl: '/anonymous.png'
+      }
+      if (this.userInfoCache == null) {
+        return anonymousUser
+      }
+      const userInfo = this.userInfoCache.getUserInfo(id)
+
+      return userInfo || anonymousUser
     }
   }
 })
