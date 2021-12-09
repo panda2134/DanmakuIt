@@ -24,7 +24,7 @@
           </template>
         </v-text-field>
         <v-text-field
-          :value="wechat_token"
+          :value="wechatToken"
           label="Token"
           messages="请填入微信公众号管理页面。"
           outlined
@@ -35,7 +35,7 @@
               icon
               depressed
               color="grey darken-2"
-              @click="copyText(wechat_token)"
+              @click="copyText(wechatToken)"
             >
               <v-icon>mdi-clipboard</v-icon>
             </v-btn>
@@ -63,7 +63,7 @@ export default Vue.extend({
       type: String,
       required: true
     },
-    initialWechatToken: {
+    wechatToken: {
       type: String,
       required: true
     },
@@ -81,13 +81,12 @@ export default Vue.extend({
       wechatValid: true,
       wechatLoading: false,
       wechat_appid: this.initialWechatAppid,
-      wechat_appsecret: this.initialWechatAppSecret,
-      wechat_token: this.initialWechatToken
+      wechat_appsecret: this.initialWechatAppSecret
     }
   },
   computed: {
     wechatCallbackURL (): string {
-      return process.env.WECHAT_CALLBACK_URL_BASE + this.roomId
+      return process.env.WECHAT_CALLBACK_URL_BASE + this.roomId + '?token=' + this.wechatToken
     }
   },
   methods: {
