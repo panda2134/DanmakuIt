@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 from time import time
 import os
 
-from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence, Union
+from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence, Union, List
 
 from cryptography.hazmat.primitives import serialization
 import jwt
@@ -91,6 +91,7 @@ def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
 async def setup(*args, **kwargs):
     def sync_token_cache(key: str, value: str):
         token_cache[key] = value
+
     sync_worker(token_channel, 'access_token', sync_token_cache)
 
     # TODO: read from pulsar to recover data
@@ -98,6 +99,7 @@ async def setup(*args, **kwargs):
         if key not in user_cache:
             user_cache[key] = set()
         user_cache[key].add(value)
+
     sync_worker(user_channel, 'room_user', sync_user_cache)
 
     def sync_set_cache(set_cache: MutableSet):
@@ -106,7 +108,9 @@ async def setup(*args, **kwargs):
                 return set_cache.discard(key)
             if value == '1':
                 return set_cache.add(key)
+
         return sync
+
     sync_worker(room_exist_channel, 'room_exist', sync_set_cache(room_exist_cache))
     sync_worker(room_enable_channel, 'room_enable', sync_set_cache(room_enable_cache))
 
@@ -136,7 +140,7 @@ async def room_post(request: Request, room: str):
     resp = await http_client.put(f'{prefix}/user_{room}')
     if resp.status_code not in {204, 409}:
         return text(f'create user topic error: {resp.status_code}', status=500)
-    
+
     infinite_retention = dict(retentionTimeInMinutes=-1, retentionSizeInMB=-1)
 
     resp = await http_client.post(f'{prefix}/{room}/retention', json=infinite_retention)
@@ -204,17 +208,28 @@ async def feed_post(request: Request, room: str):
         return text('room access token not found', status=403)
 
     token = token_cache[room]
-    resp = await http_client.get(
-        'https://api.weixin.qq.com/cgi-bin/user/get',
-        params={'access_token': token}
-    )
-    # TODO: > 10000 user, nextopenid
-    if resp.status_code != 200:
-        return text('Error fetch from wechat', status=500)
-    resp_obj: Mapping[str, Any] = resp.json()
-    if 'errcode' in resp_obj:
-        return text('Error fetch from wechat', status=500)
-    users: Sequence[str] = resp_obj['data']['openid']
+    users: List[str] = []
+    next_openid: Optional[str] = None
+    while True:
+        params = {'access_token': token}
+        # Cannot use next_openid: None in params directly,
+        # since it will be converted to ?next_openid=&access_token=...
+        if next_openid:
+            params['next_openid'] = next_openid
+        resp = await http_client.get(
+            'https://api.weixin.qq.com/cgi-bin/user/get',
+            params=params
+        )
+        if resp.status_code != 200:
+            return text('Error fetch from wechat', status=500)
+        resp_obj: Mapping[str, Any] = resp.json()
+        if 'errcode' in resp_obj:
+            return text('Error fetch from wechat', status=500)
+        users.extend(resp_obj['data']['openid'])
+        if len(users) >= resp_obj['total']:
+            break
+        else:
+            next_openid = resp_obj.get('next_openid')
 
     async def feed():
         batch_size = 100
@@ -222,6 +237,7 @@ async def feed_post(request: Request, room: str):
             res = await fetch_users(room, users[i:i + batch_size])
             if not res:
                 break
+
     app.add_task(feed())
     return text('success')
 
