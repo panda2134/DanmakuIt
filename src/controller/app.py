@@ -275,8 +275,15 @@ not_support = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息�
 success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
 
 
+wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
+wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
+
+
 @app.post('/port/<room:str>')  # wechat send danmaku
 async def port_post(request: Request, room: str):
+    token: Optional[str] = request.get_args().get('token')
+    if token != readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]:
+        return text('token error', status=401)
     data: Mapping[str, str] = {el.tag: el.text for el in ElementTree.fromstring(request.body)}
     from_user = data.get('FromUserName', '')
     developer_account = data.get('ToUserName', '')
@@ -324,10 +331,6 @@ async def port_post(request: Request, room: str):
         callback=lambda *_: None
     )
     return reply_xml(success)
-
-
-wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
-wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
 
 
 def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/=', b'LLLooXYZ')) -> str:
