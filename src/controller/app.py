@@ -145,19 +145,19 @@ async def room_post(request: Request, room: str):
 
     resp = await http_client.post(f'{prefix}/{room}/retention', json=infinite_retention)
     if not resp.is_success:
-        return text(text=f'danmaku topic set retention error: {resp.status_code}', status=500)
+        return text(f'danmaku topic set retention error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/user_{room}/retention', json=infinite_retention)
     if not resp.is_success:
-        return text(text=f'user topic set retention error: {resp.status_code}', status=500)
+        return text(f'user topic set retention error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/{room}/permissions/display_{room}', json=['consume'])
     if resp.status_code != 204:
-        return text(text=f'danmaku topic grant permission error: {resp.status_code}', status=500)
+        return text(f'danmaku topic grant permission error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/user_{room}/permissions/display_{room}', json=['consume'])
     if resp.status_code != 204:
-        return text(text=f'user topic grant permission error: {resp.status_code}', status=500)
+        return text(f'user topic grant permission error: {resp.status_code}', status=500)
 
     await redis.publish('room_exist', f'{room}:1')
 
