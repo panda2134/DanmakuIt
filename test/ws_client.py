@@ -41,15 +41,15 @@ class HTTPBearerAuth(requests.auth.AuthBase):
         return r
 
 
-schema = 'ws'
-domain = 'https://danmakuit.panda2134.site' # 'localhost:8000' # 'se-srv2.panda2134.site'
+schema = 'wss'
+domain = 'danmakuit.panda2134.site' # 'localhost:8000' # 'se-srv2.panda2134.site'
 
 
 if __name__ == '__main__':
-    response = requests.get(f'http://{domain}/api/v1/room/{room_id}/client-login', auth=HTTPBearerAuth(room_passcode)).json()
+    response = requests.get(f'https://{domain}/api/v1/room/{room_id}/client-login', auth=HTTPBearerAuth(room_passcode)).json()
     print('Response from client_login:', response)
     ws = websocket.WebSocketApp(
-        f'{schema}://{domain}/websocket/consumer/persistent/public/default/{room_id}/sub?token={response["pulsar_jwt"]}',
+        f'{schema}://{domain}/websocket/reader/persistent/public/default/user_{room_id}?messageId=earliest&token={response["pulsar_jwt"]}',
         on_open=on_open,
         on_message=on_message,
         on_error=on_error,

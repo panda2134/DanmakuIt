@@ -1,3 +1,3 @@
-room_id = '1619359140'
-room_passcode = 'RhRbmY'
+room_id = '2640213433'
+room_passcode = 'i69YXL'
 wechat_token = 'XNXS6bR2KUzL'
