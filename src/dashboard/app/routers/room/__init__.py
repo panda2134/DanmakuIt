@@ -12,7 +12,7 @@ from httpx import HTTPError
 from app.bgtasks import get_bg_queue
 from app.models.danmaku import DanmakuMessage
 
-from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse
+from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse, OnlineConsumers
 from app.models.user import User
 from app.utils.jwt import get_current_user
 from app.utils.room import generate_room_id, readable_sha256, push_setting
@@ -209,3 +209,17 @@ async def danmaku_update(room_id: str, room_query: dict = Depends(room_with_auth
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f'Cannot update danmaku.')
     return danmaku
+
+
+@router.post('/{room_id}/consumers', response_model=OnlineConsumers,
+             description='Get the online consumers of a room.')
+async def online_consumers(room_id: str, room_query: dict = Depends(room_with_auth)):
+    if not await get_db()['room'].count_documents(room_query, limit=1):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+    try:
+        res = await http_client.get(f'{app_config.controller_url}/room/{room_id}/consumers')
+        res.raise_for_status()
+        return OnlineConsumers(online_consumers=res.json())
+    except HTTPError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot get online consumers.')
