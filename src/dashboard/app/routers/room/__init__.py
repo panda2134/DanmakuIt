@@ -211,7 +211,7 @@ async def danmaku_update(room_id: str, room_query: dict = Depends(room_with_auth
     return danmaku
 
 
-@router.post('/{room_id}/consumers', response_model=OnlineConsumers,
+@router.get('/{room_id}/consumers', response_model=OnlineConsumers,
              description='Get the online consumers of a room.')
 async def online_consumers(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
