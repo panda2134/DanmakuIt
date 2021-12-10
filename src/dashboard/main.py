@@ -18,7 +18,7 @@ with readme_file.open('r') as f:
     description = f.read()
 
 app = FastAPI(
-    title='DanmakuItPanel',
+    title='DanmakuIt Dashboard API',
     description=description,
     root_path="/api/v1",
     servers=[
