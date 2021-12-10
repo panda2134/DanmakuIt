@@ -17,6 +17,10 @@ class RoomQRCodeResponse(BaseModel):
     url: str
 
 
+class OnlineConsumers(BaseModel):
+    online_consumers: List[str]
+
+
 class Room(RoomNameModel):
     _id: Any # should be ObjectId from motor, but pydantic cannot handle that
     uid: str
