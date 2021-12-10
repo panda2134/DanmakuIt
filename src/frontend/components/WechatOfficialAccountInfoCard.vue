@@ -4,7 +4,7 @@
       微信公众号
     </v-card-title>
     <v-card-text>
-      <v-form v-model="wechatValid">
+      <v-form id="wechat-info-form" v-model="wechatValid" @submit.prevent="submitWeChatInfo">
         <v-text-field
           :value="wechatCallbackURL"
           label="回调地址"
@@ -47,7 +47,14 @@
     </v-card-text>
     <v-divider />
     <v-card-actions>
-      <v-btn :disabled="!wechatValid" :loading="wechatLoading" text color="primary" @click="submitWeChatInfo">
+      <v-btn
+        :disabled="!wechatValid"
+        :loading="wechatLoading"
+        text
+        color="primary"
+        type="submit"
+        form="wechat-info-form"
+      >
         提交
       </v-btn>
     </v-card-actions>

@@ -4,14 +4,21 @@
       基本信息
     </v-card-title>
     <v-card-text>
-      <v-form v-model="basicValid">
+      <v-form id="basic-info-form" v-model="basicValid" @submit.prevent="submitBasicInfo">
         <v-text-field v-model="name" outlined label="房间名称" :rules="[v => v ? true : '不能为空']" />
         <v-checkbox v-model="danmaku_enabled" label="允许弹幕" />
       </v-form>
     </v-card-text>
     <v-divider />
     <v-card-actions>
-      <v-btn text :disabled="!basicValid" :loading="basicLoading" color="primary" @click="submitBasicInfo">
+      <v-btn
+        text
+        :disabled="!basicValid"
+        :loading="basicLoading"
+        color="primary"
+        form="basic-info-form"
+        type="submit"
+      >
         提交
       </v-btn>
     </v-card-actions>

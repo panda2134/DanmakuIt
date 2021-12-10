@@ -11,9 +11,11 @@
           连接设备
         </v-btn>
       </nuxt-link>
-      <v-btn text dark>
-        弹幕审核
-      </v-btn>
+      <nuxt-link v-slot="{ navigate }" :to="roomCensorPath" custom>
+        <v-btn text dark @click="navigate">
+          弹幕审核
+        </v-btn>
+      </nuxt-link>
     </portal>
     <v-breadcrumbs divider="/" :items="breadcrumbs" />
   </div>
@@ -35,6 +37,7 @@ export default Vue.extend({
   computed: {
     roomInfoPath () { return `/my-room/${this.roomId}` },
     roomConnectPath () { return `/my-room/${this.roomId}/connect` },
+    roomCensorPath () { return `/my-room/${this.roomId}/censor` },
     breadcrumbs (): any[] {
       return [
         {

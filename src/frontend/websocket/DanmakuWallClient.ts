@@ -91,7 +91,8 @@ export class DanmakuWallClient {
                public onDanmaku: (o: PulsarEvent<Danmaku>) => void = dummyHandler,
                public onConnected: () => void = dummyHandler,
                public onDisconnect: () => void = dummyHandler,
-               public onConnectionFail: (ev: Event) => void = dummyHandler) {
+               public onConnectionFail: (ev: Event) => void = dummyHandler,
+               public readonly subscriptionNamePrefix: 'DanmakuWall' | 'Censor' = 'DanmakuWall') {
     this.initWebSocket()
   }
 
@@ -99,7 +100,7 @@ export class DanmakuWallClient {
     if (this.wsDanmaku) {
       this.wsDanmaku.close()
     }
-    const subscriptionName = 'DanmakuWall' + '~' + nanoid()
+    const subscriptionName = this.subscriptionNamePrefix + '~' + nanoid()
     this.wsDanmaku = new WebSocket('wss://danmakuit.panda2134.site/websocket/' +
       `consumer/persistent/public/default/${this.roomId}/${subscriptionName}?token=${this.pulsarJWT}`)
     this.wsDanmaku.onmessage = (msg) => {

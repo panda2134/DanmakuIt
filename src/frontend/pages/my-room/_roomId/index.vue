@@ -25,7 +25,13 @@
       :initial-wechat-app-secret="room.wechat_appsecret"
       @room-update="$fetch"
     />
-    <fetch-subscriber-card :room-id="room.room_id" />
+    <fetch-subscriber-card :room-id="room.room_id" class="mb-5" />
+    <censor-config-card
+      :room-id="room.room_id"
+      :initial-auto-censor="room.remote_censor"
+      :initial-keywords="room.keyword_blacklist"
+      @room-update="$fetch"
+    />
   </v-container>
 </template>
 
