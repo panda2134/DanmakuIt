@@ -1,5 +1,5 @@
 <template>
-  <v-card outlined>
+  <v-card>
     <v-card-title>
       基本信息
     </v-card-title>

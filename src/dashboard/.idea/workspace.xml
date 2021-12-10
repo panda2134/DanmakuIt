@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(dashboard): push new access_token to pulsar config" />
+    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="feat(controller, dashboard): details in online consumers">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/components/DanmakuWallInfoCard.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/openapi/openapi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/openapi/openapi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/connect.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/connect.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/plugins/http.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/plugins/http.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test/ws_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../test/ws_client.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -45,6 +53,10 @@
       <workItem from="1639058320667" duration="626000" />
       <workItem from="1639064829104" duration="844000" />
       <workItem from="1639111554655" duration="1408000" />
+      <workItem from="1639143521624" duration="1637000" />
+      <workItem from="1639149943093" duration="13000" />
+      <workItem from="1639149966901" duration="163000" />
+      <workItem from="1639150272096" duration="789000" />
     </task>
     <task id="LOCAL-00001" summary="fix: wechat access token bgtasks">
       <created>1638862342966</created>
@@ -95,7 +107,42 @@
       <option name="project" value="LOCAL" />
       <updated>1638865781338</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="feat(dashboard): online consumers API">
+      <created>1639143721010</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1639143721010</updated>
+    </task>
+    <task id="LOCAL-00009" summary="chore(dashboard): docs">
+      <created>1639143746545</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1639143746545</updated>
+    </task>
+    <task id="LOCAL-00010" summary="docs(dashboard): change doc title to dashboard api">
+      <created>1639143759218</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1639143759218</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat(dashboard): web origin config">
+      <created>1639145158543</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1639145158543</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat(controller, dashboard): details in online consumers">
+      <created>1639150455044</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1639150455044</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -121,6 +168,11 @@
     <MESSAGE value="fix(dashboard): use $set in access token update func" />
     <MESSAGE value="fix(dashboard): await in access_token batch update" />
     <MESSAGE value="fix(dashboard): push new access_token to pulsar config" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(dashboard): push new access_token to pulsar config" />
+    <MESSAGE value="feat(dashboard): online consumers API" />
+    <MESSAGE value="chore(dashboard): docs" />
+    <MESSAGE value="docs(dashboard): change doc title to dashboard api" />
+    <MESSAGE value="feat(dashboard): web origin config" />
+    <MESSAGE value="feat(controller, dashboard): details in online consumers" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(controller, dashboard): details in online consumers" />
   </component>
 </project>

@@ -54,10 +54,26 @@ export interface paths {
     /** Update a danmaku message from users, or send a danmaku from admin. */
     post: operations["danmaku_update_room__room_id__danmaku_update_post"];
   };
+  "/room/{room_id}/consumers": {
+    /** Get the online subscriptions of a room. */
+    get: operations["online_consumers_room__room_id__consumers_get"];
+  };
 }
 
 export interface components {
   schemas: {
+    ConsumerDetail: {
+      address?: string;
+      consumerName?: string;
+      availablePermits?: number;
+      blockedConsumerOnUnackedMsgs?: boolean;
+      clientVersion?: string;
+      connectedSince?: string;
+      msgRateOut?: number;
+      msgRateRedeliver?: number;
+      msgThroughputOut?: number;
+      unackedMessages?: number;
+    };
     DanmakuMessage: {
       color: string;
       content: string;
@@ -69,6 +85,10 @@ export interface components {
     };
     HTTPValidationError: {
       detail?: components["schemas"]["ValidationError"][];
+    };
+    OnlineSubscription: {
+      subscription_name: string;
+      consumers: components["schemas"]["ConsumerDetail"][];
     };
     Room: {
       name: string;
@@ -406,6 +426,28 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["DanmakuMessage"];
+      };
+    };
+  };
+  /** Get the online subscriptions of a room. */
+  online_consumers_room__room_id__consumers_get: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["OnlineSubscription"][];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
       };
     };
   };

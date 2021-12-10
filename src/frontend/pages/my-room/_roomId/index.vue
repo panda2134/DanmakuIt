@@ -1,6 +1,15 @@
 <template>
   <v-container>
     <room-detail-header :room-id="room.room_id" :room-name="room.name" />
+    <v-alert
+      v-if="showNoAppSecretError"
+      type="error"
+      dense
+      elevation="1"
+    >
+      尚未设置微信公众号AppID/AppSecret，弹幕墙头像抓取、二维码显示等功能将不会工作。
+      完成设置后，请点击按钮抓取现有关注者的头像等信息。
+    </v-alert>
     <basic-info-card
       class="mb-5"
       :room-id="room.room_id"
@@ -57,6 +66,11 @@ export default Vue.extend({
   async fetch () {
     this.room = await this.$api['/room/{room_id}'].get(this.$route.params.roomId)
     Object.assign(this.roomUpdate, this.room)
+  },
+  computed: {
+    showNoAppSecretError () {
+      return !(this.room?.wechat_appid && this.room?.wechat_appsecret)
+    }
   }
 })
 </script>
