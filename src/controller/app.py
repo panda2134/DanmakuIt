@@ -155,10 +155,11 @@ async def get_consumers(request: Request, room: str):
             'message': 'room not enabled'
         }, status=404)
     prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
-    res = await http_client.get(prefix + f'/{room}/subscriptions')
+    res = await http_client.get(prefix + f'/{room}/stats')
     if res.status_code != 200:
         return text(f'cannot get consumers of room {room}', status=500)
-    return json(res.json())
+    subscriptions = res.json()['subscriptions']
+    return json([k for (k, v) in subscriptions.items() if len(v['consumers'])])
 
 
 @app.post('/room/<room:str>')  # register room
