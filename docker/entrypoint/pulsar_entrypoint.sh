@@ -10,6 +10,8 @@ _term() {
 }
 trap _term SIGTERM
 
+export PULSAR_EXTRA_OPTS=-Dlog4j2.formatMsgNoLookups=true
+export BOOKIE_EXTRA_OPTS=-Dlog4j2.formatMsgNoLookups=true
 bin/pulsar-daemon start standalone
 bash functions_create.sh
 until false; do sleep 1; done
