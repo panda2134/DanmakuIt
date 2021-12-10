@@ -159,7 +159,7 @@ async def get_consumers(request: Request, room: str):
     if res.status_code != 200:
         return text(f'cannot get consumers of room {room}', status=500)
     subscriptions = res.json()['subscriptions']
-    return json([k for (k, v) in subscriptions.items() if len(v['consumers'])])
+    return json({k: v['consumers'] for (k, v) in subscriptions.items() if len(v['consumers'])})
 
 
 @app.post('/room/<room:str>')  # register room
