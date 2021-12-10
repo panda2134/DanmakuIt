@@ -1,7 +1,7 @@
 import asyncio
 from hashlib import sha1, sha256
 from binascii import b2a_base64
-import json
+import json as jsonlib
 from xml.etree import ElementTree
 from time import time
 import os
@@ -14,7 +14,7 @@ import jwt
 import aioredis
 from aioredis.client import PubSub
 from httpx import AsyncClient
-from sanic import Sanic, Request, text
+from sanic import Sanic, Request, text, json
 import pulsar
 
 with open('/private_key/private.key', 'rb') as f:
@@ -147,6 +147,20 @@ async def cleanup(*args, **kwargs):
     await token_channel.unsubscribe()
 
 
+@app.get('/room/<room:str>/consumers')  # get online consumers
+async def get_consumers(request: Request, room: str):
+    if room not in room_enable_cache:
+        return json({
+            'code': 404,
+            'message': 'room not enabled'
+        }, status=404)
+    prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
+    res = await http_client.get(prefix + f'/{room}/subscriptions')
+    if res.status_code != 200:
+        return text(f'cannot get consumers of room {room}', status=500)
+    return json(res.json())
+
+
 @app.post('/room/<room:str>')  # register room
 async def room_post(request: Request, room: str):
     prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
@@ -275,12 +289,12 @@ async def setting_put(request: Request, room: str):
         if mode == 'resume':
             await redis.publish('room_exist', f'{room}:1')
 
-    state: MutableMapping = json.loads(request.body)
+    state: MutableMapping = jsonlib.loads(request.body)
     enable = int(state['danmaku_enabled'])
     await redis.publish('room_enable', f'{room}:{enable}')
     del state['danmaku_enabled']
     get_state_update_producer().send_async(
-        content=json.dumps([room, json.dumps(state)]).encode(),
+        content=jsonlib.dumps([room, jsonlib.dumps(state)]).encode(),
         callback=lambda *_: None
     )
     return text('success')
@@ -349,7 +363,7 @@ async def port_post(request: Request, room: str):
 
     sender = 'user@wechat:' + from_user  # add user@wechat: prefix; client should strip this before getting the avatar
     get_raw_producer().send_async(
-        content=json.dumps(
+        content=jsonlib.dumps(
             dict(
                 content=content,
                 sender=sender,
