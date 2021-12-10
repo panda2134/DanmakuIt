@@ -221,12 +221,18 @@ export default Vue.extend({
         nickname: '神秘人',
         headimgurl: '/anonymous.png'
       }
+      const adminUser = {
+        id: 'admin',
+        nickname: '管理员',
+        headimgurl: '/admin.png'
+      }
+      const localCache = [anonymousUser, adminUser]
       if (this.userInfoCache == null) {
         return anonymousUser
       }
       const userInfo = this.userInfoCache.getUserInfo(id)
 
-      return userInfo || anonymousUser
+      return userInfo || localCache.find(x => x.id === id) || anonymousUser
     }
   }
 })
