@@ -3,14 +3,14 @@ from typing import Any, Callable, Coroutine, Sequence
 
 import asyncio
 from datetime import datetime
-from app.utils import room
 from arq.connections import ArqRedis
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from httpx import HTTPError
 
 from app.bgtasks import get_bg_queue
+from app.models.danmaku import DanmakuMessage
 
 from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse
 from app.models.user import User
@@ -93,7 +93,8 @@ async def get_room(room_query: dict = Depends(room_with_auth)):
 
 
 @router.patch('/{room_id}', response_model=Room, description="uid, room_id and creation_time cannot be altered")
-async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_with_auth), bg_queue: ArqRedis = Depends(get_bg_queue)):
+async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends(room_with_auth),
+                      bg_queue: ArqRedis = Depends(get_bg_queue)):
     db = get_db()
     update_dict = room.dict(exclude_unset=True)
     origin_room = await db['room'].find_one_and_update(room_query, {'$set': update_dict})
@@ -151,9 +152,11 @@ async def client_login_room(room_id: str, passcode: HTTPAuthorizationCredentials
     return room
 
 
+# the unused local variable is for authentication purposes; do not remove it!
+# noinspection PyUnusedLocal
 @router.get('/{room_id}/qrcode', response_model=RoomQRCodeResponse,
             description='Set `room_passcode` in HTTP Bearer;' +
-            'This is provided for clients so that they can fetch the QR code without JWT.')
+                        'This is provided for clients so that they can fetch the QR code without JWT.')
 async def get_room_qrcode(room_id: str, passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
     doc = await get_db()['room'].find_one({'room_id': room_id})
     if doc is None:
@@ -178,14 +181,31 @@ async def get_room_qrcode(room_id: str, passcode: HTTPAuthorizationCredentials =
 
 
 @router.post('/{room_id}/fetch-subscribers', response_model=RoomIdModel,
-            description='Fetch the user information of all subscribers.'+
-                        'Returns room_id in JSON when the fetch process starts.')
+             description='Fetch the user information of all subscribers.' +
+                         'Returns room_id in JSON when the fetch process starts.')
 async def fetch_subscribers_of_room(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     try:
-        await http_client.post(f'{app_config.controller_url}/feed/{room_id}')
+        res = await http_client.post(f'{app_config.controller_url}/feed/{room_id}')
+        res.raise_for_status()
         return {'room_id': room_id}
     except HTTPError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f'Cannot start fetching subscribers.')
+
+
+@router.post('/{room_id}/danmaku-update', response_model=DanmakuMessage,
+             description='Update a danmaku message from users, or send a danmaku from admin.')
+async def danmaku_update(room_id: str, room_query: dict = Depends(room_with_auth),
+                         danmaku: DanmakuMessage = Body(...)):
+    if not await get_db()['room'].count_documents(room_query, limit=1):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+    try:
+        res = await http_client.post(f'{app_config.controller_url}/danmaku-admin/{room_id}',
+                                     json=danmaku.dict())
+        res.raise_for_status()
+    except HTTPError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot update danmaku.')
+    return danmaku

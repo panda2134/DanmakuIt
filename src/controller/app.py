@@ -1,6 +1,7 @@
 import asyncio
 from hashlib import sha1, sha256
 from binascii import b2a_base64
+from functools import lru_cache
 import json
 from xml.etree import ElementTree
 from time import time
@@ -25,6 +26,7 @@ super_user_token = jwt.encode({'sub': 'super-user'}, private_key, algorithm='RS2
 http_client = AsyncClient(headers={'Authorization': f'Bearer {super_user_token}'})
 pulsar_client = pulsar.Client('pulsar://pulsar:6650', pulsar.AuthenticationToken(super_user_token))
 raw_producer: Optional[pulsar.Producer] = None
+danmaku_producer: Optional[pulsar.Producer] = None
 state_update_producer: Optional[pulsar.Producer] = None
 user_producers: MutableMapping[str, pulsar.Producer] = {}
 
@@ -51,6 +53,17 @@ def get_raw_producer():
             batching_max_publish_delay_ms=10
         )
     return raw_producer
+
+
+@lru_cache(maxsize=1024)
+def get_danmaku_producer_for_room(room: str) -> pulsar.Producer:
+    producer = pulsar_client.create_producer(
+        f'persistent://public/default/{room}',
+        block_if_queue_full=True,
+        batching_enabled=True,
+        batching_max_publish_delay_ms=10
+    )
+    return producer
 
 
 def get_state_update_producer():
@@ -264,6 +277,18 @@ async def setting_put(request: Request, room: str):
     del state['danmaku_enabled']
     get_state_update_producer().send_async(
         content=json.dumps([room, json.dumps(state)]).encode(),
+        callback=lambda *_: None
+    )
+    return text('success')
+
+
+@app.post('/danmaku-admin/<room:str>')  # post danmaku
+async def danmaku_admin_post(request: Request, room: str):
+    danmaku = request.json()
+    content = b'\x00\x00\x00' if danmaku.get('sender') == 'admin' else b'\x00\x00\x01'
+    get_danmaku_producer_for_room(room).send_async(
+        content=content,
+        properties=danmaku,
         callback=lambda *_: None
     )
     return text('success')
