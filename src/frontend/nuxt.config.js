@@ -31,6 +31,7 @@ export default {
       { name: 'theme-color', content: '#aaaaaa' } // android task menu
     ],
     link: [
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.cnpmjs.org/css?family=Roboto:100,300,400,500,700,900' },
       { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
       { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
       { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
