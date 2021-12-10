@@ -17,8 +17,22 @@ class RoomQRCodeResponse(BaseModel):
     url: str
 
 
-class OnlineConsumers(BaseModel):
-    online_consumers: List[str]
+class ConsumerDetail(BaseModel):
+    address: Optional[str]
+    consumerName: Optional[str]
+    availablePermits: Optional[int]
+    blockedConsumerOnUnackedMsgs: Optional[bool]
+    clientVersion: Optional[str]
+    connectedSince: Optional[str]
+    msgRateOut: Optional[float]
+    msgRateRedeliver: Optional[float]
+    msgThroughputOut: Optional[float]
+    unackedMessages: Optional[int]
+
+
+class OnlineSubscription(BaseModel):
+    subscription_name: str
+    consumers: List[ConsumerDetail]
 
 
 class Room(RoomNameModel):

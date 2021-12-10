@@ -1,5 +1,5 @@
 import secrets
-from typing import Any, Callable, Coroutine, Sequence
+from typing import Any, Callable, Coroutine, Sequence, List
 
 import asyncio
 from datetime import datetime
@@ -12,7 +12,7 @@ from httpx import HTTPError
 from app.bgtasks import get_bg_queue
 from app.models.danmaku import DanmakuMessage
 
-from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse, OnlineConsumers
+from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse, OnlineSubscription
 from app.models.user import User
 from app.utils.jwt import get_current_user
 from app.utils.room import generate_room_id, readable_sha256, push_setting
@@ -211,7 +211,7 @@ async def danmaku_update(room_id: str, room_query: dict = Depends(room_with_auth
     return danmaku
 
 
-@router.get('/{room_id}/consumers', response_model=OnlineConsumers,
+@router.get('/{room_id}/consumers', response_model=List[OnlineSubscription],
              description='Get the online consumers of a room.')
 async def online_consumers(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
@@ -219,7 +219,14 @@ async def online_consumers(room_id: str, room_query: dict = Depends(room_with_au
     try:
         res = await http_client.get(f'{app_config.controller_url}/room/{room_id}/consumers')
         res.raise_for_status()
-        return OnlineConsumers(online_consumers=res.json())
+        response_json = res.json()  # {subscription_name: List[ConsumerDetail]}
+        subscription_list: List[OnlineSubscription] = []
+        for subscription_name, consumers in response_json.items():
+            subscription_list.append(OnlineSubscription(
+                subscription_name=subscription_name,
+                consumers=consumers
+            ))
+        return subscription_list
     except HTTPError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f'Cannot get online consumers.')
