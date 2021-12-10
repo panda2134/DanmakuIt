@@ -31,6 +31,13 @@ $ yarn openapi
 
 最后，修改 `plugins/http.ts`，实现新的 API 接口。返回值类型会自动根据 spec 文件进行推断。
 
+## 关于 Favicon
+
+为什么 `/static` 下面这么多看上去一样的图标？能不能删掉一些？
+
+不能，这些图标是用来兼容不同平台的。
+请看[这篇文章](https://stackoverflow.com/questions/48956465/favicon-standard-2021-svg-ico-png-and-dimensions) 。
+
 ## 测试
 
 TODO: e2e test & unit test
