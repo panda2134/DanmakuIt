@@ -1,5 +1,6 @@
 import { Context, Plugin } from '@nuxt/types'
 import { components, paths } from '~/openapi/openapi'
+import { Danmaku } from '~/websocket/DanmakuWallClient'
 
 type APIGetType<Q extends paths[keyof paths]> = Q extends Record<'get', any> ? {
   get: (...args: any[]) => Promise<Q['get']['responses'] extends {200: any} ?
@@ -79,6 +80,9 @@ function getAPI ({ $axios, $config }: Context): APIType {
     },
     '/room/{room_id}/fetch-subscribers': {
       post: (roomId: string) => $axios.$post(`/room/${roomId}/fetch-subscribers`)
+    },
+    '/room/{room_id}/danmaku-update': {
+      post: (roomId: string, danmaku: Danmaku) => $axios.$post(`/room/${roomId}/danmaku-update`, danmaku)
     }
   }
 }
@@ -119,7 +123,8 @@ const myPlugin: Plugin = (context, inject) => {
       // token is invalid now!
       context.$axios.setToken(false)
       localStorage.removeItem('token')
-      context.redirect('/', { invalid_token: 'true' })
+      context.redirect('/invalid-token')
+      // location.href = '/?invalid_token=true'
       return Promise.resolve(null)
     } else {
       throw err
