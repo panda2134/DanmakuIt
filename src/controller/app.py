@@ -1,7 +1,6 @@
 import asyncio
 from hashlib import sha1, sha256
 from binascii import b2a_base64
-from functools import lru_cache
 import json
 from xml.etree import ElementTree
 from time import time
@@ -29,6 +28,7 @@ raw_producer: Optional[pulsar.Producer] = None
 danmaku_producer: Optional[pulsar.Producer] = None
 state_update_producer: Optional[pulsar.Producer] = None
 user_producers: MutableMapping[str, pulsar.Producer] = {}
+room_producers: MutableMapping[str, pulsar.Producer] = {}
 
 redis: aioredis.Redis = aioredis.from_url('redis://redis:6379/0', encoding="utf-8", decode_responses=True)
 token_channel = redis.pubsub()
@@ -55,15 +55,15 @@ def get_raw_producer():
     return raw_producer
 
 
-@lru_cache(maxsize=1024)
 def get_danmaku_producer_for_room(room: str) -> pulsar.Producer:
-    producer = pulsar_client.create_producer(
-        f'persistent://public/default/{room}',
-        block_if_queue_full=True,
-        batching_enabled=True,
-        batching_max_publish_delay_ms=10
-    )
-    return producer
+    if room not in room_producers:
+        room_producers[room] = pulsar_client.create_producer(
+            f'persistent://public/default/{room}',
+            block_if_queue_full=True,
+            batching_enabled=True,
+            batching_max_publish_delay_ms=10
+        )
+    return room_producers[room]
 
 
 def get_state_update_producer():
@@ -134,6 +134,10 @@ async def cleanup(*args, **kwargs):
 
     raw_producer.flush() if raw_producer is not None else None
     state_update_producer.flush() if state_update_producer is not None else None
+    for v in user_producers.values():
+        v.flush()
+    for v in room_producers.values():
+        v.flush()
 
     pulsar_client.close()
 
@@ -284,7 +288,7 @@ async def setting_put(request: Request, room: str):
 
 @app.post('/danmaku-admin/<room:str>')  # post danmaku
 async def danmaku_admin_post(request: Request, room: str):
-    danmaku = request.json()
+    danmaku = request.json
     content = b'\x00\x00\x00' if danmaku.get('sender') == 'admin' else b'\x00\x00\x01'
     get_danmaku_producer_for_room(room).send_async(
         content=content,
