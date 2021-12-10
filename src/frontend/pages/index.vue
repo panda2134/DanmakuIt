@@ -3,7 +3,7 @@
     <v-container class="d-flex flex-column justify-center align-center" style="height: 100vh">
       <header class="d-flex flex-row align-center my-8">
         <!--suppress CheckImageSize -->
-        <img src="/favicon.png" height="160" width="160" alt="icon">
+        <img src="/icon.webp" height="160" width="160" alt="icon">
         <h1 class="ml-12">
           弹幕一下
         </h1>

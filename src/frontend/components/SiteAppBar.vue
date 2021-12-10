@@ -2,7 +2,7 @@
   <v-app-bar elevation="4" color="primary" dark app>
     <nuxt-link v-slot="{ navigate }" custom to="/">
       <v-app-bar-nav-icon @click="navigate">
-        <v-img src="/favicon.png" contain :max-width="32" :max-height="32" />
+        <v-img src="/icon.webp" contain :max-width="32" :max-height="32" />
       </v-app-bar-nav-icon>
     </nuxt-link>
     <v-toolbar-title>
