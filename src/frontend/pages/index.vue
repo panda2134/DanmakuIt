@@ -80,19 +80,11 @@ export default Vue.extend({
       return `https://github.com/panda2134/DanmakuIt/commit/${this.commitSHA}`
     }
   },
-  mounted () {
-    this.checkAndPromptInvalidToken()
-  },
   methods: {
-    checkAndPromptInvalidToken () {
-      if (this.$route.query.invalid_token) {
-        this.$toast.error('未登录或凭据过期，请重新登录！')
-        this.$router.push('/')
-      }
-    },
     loadTestToken () {
       if (process.env.TEST_TOKEN) {
-        this.$axios.setToken(`Bearer ${process.env.TEST_TOKEN}`)
+        this.$axios.setToken(process.env.TEST_TOKEN, 'Bearer')
+        localStorage.setItem('token', process.env.TEST_TOKEN)
         this.$toast.success('已经载入测试Token')
       } else {
         this.$toast.error('测试Token未找到')

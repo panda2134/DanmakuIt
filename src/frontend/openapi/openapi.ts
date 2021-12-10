@@ -50,10 +50,23 @@ export interface paths {
     /** Fetch the user information of all subscribers.Returns room_id in JSON when the fetch process starts. */
     post: operations["fetch_subscribers_of_room_room__room_id__fetch_subscribers_post"];
   };
+  "/room/{room_id}/danmaku-update": {
+    /** Update a danmaku message from users, or send a danmaku from admin. */
+    post: operations["danmaku_update_room__room_id__danmaku_update_post"];
+  };
 }
 
 export interface components {
   schemas: {
+    DanmakuMessage: {
+      color: string;
+      content: string;
+      id: string;
+      permission: string;
+      pos: string;
+      sender: string;
+      size: string;
+    };
     HTTPValidationError: {
       detail?: components["schemas"]["ValidationError"][];
     };
@@ -366,6 +379,33 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
         };
+      };
+    };
+  };
+  /** Update a danmaku message from users, or send a danmaku from admin. */
+  danmaku_update_room__room_id__danmaku_update_post: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DanmakuMessage"];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DanmakuMessage"];
       };
     };
   };
