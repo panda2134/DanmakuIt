@@ -22,7 +22,7 @@ app = FastAPI(
     description=description,
     root_path="/api/v1",
     servers=[
-        {"url": "https://danmakuit.panda2134.site/api/v1", "description": "Development server"},
+        {"url": f"https://{app_config.origin}/api/v1", "description": "Development server"},
     ],
 )
 
@@ -37,6 +37,10 @@ if app_config.debug:
     print('Running in debug mode!')
     app.mount('/static', StaticFiles(directory=static_dir), name='callback_test')
     app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True,
+                       allow_methods=['*'], allow_headers=['*'])
+else:
+    app.add_middleware(CORSMiddleware, allow_origins=['localhost', app_config.origin],
+                       allow_credentials=True,
                        allow_methods=['*'], allow_headers=['*'])
 
 uvicorn.run(app, host="0.0.0.0", port=8000)
