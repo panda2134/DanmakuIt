@@ -118,11 +118,19 @@ const myPlugin: Plugin = (context, inject) => {
       }
       // token is invalid now!
       context.$axios.setToken(false)
+      localStorage.removeItem('token')
       context.redirect('/', { invalid_token: 'true' })
       return Promise.resolve(null)
     } else {
       throw err
     }
+  })
+  context.$axios.onRequest((config) => {
+    const storedToken = localStorage.getItem('token')
+    if (storedToken) {
+      context.$axios.setToken(storedToken, 'Bearer')
+    }
+    return config
   })
 }
 
