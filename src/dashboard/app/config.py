@@ -43,6 +43,7 @@ class RoomSettings(BaseSettings):
 
 class Settings(BaseSettings):
     debug: bool = Field(False, env='DEBUG')
+    origin: bool = Field('danmakuit.panda2134.site', env='WEB_ORIGIN')
     social_login = SocialLoginSettings()
     mongo_uri: AnyUrl = Field('mongodb://root:password@mongo:27017')
     controller_url: AnyUrl = Field('http://controller:8000')
