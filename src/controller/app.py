@@ -311,7 +311,7 @@ room_not_found = '房间不存在'
 room_disable = '房间未开启弹幕'
 not_support = os.getenv('WECHAT_DANMAKU_REPLY_NOT_SUPPORT', '暂不支持这种消息哦~')
 danmaku_maxlen = int(os.getenv('WECHAT_DANMAKU_MAXLEN', '50'))
-exceed_maxlen = os.getenv('WECHAT_DANMAKU_REPLY_EXCEED_MAXLEN', '啊，消息太长啦，塞不进去哦~')
+exceed_maxlen = os.getenv('WECHAT_DANMAKU_REPLY_EXCEED_MAXLEN', '暂时没法处理这么长的消息哦~')
 success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
 
 
