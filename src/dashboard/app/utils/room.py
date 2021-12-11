@@ -23,6 +23,6 @@ def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/
 
 def push_setting(http_client: AsyncClient, room_id: str, room: Room, mode: str = None):
     return http_client.put(f'{app_config.controller_url}/setting/{room_id}',
-                           json=room.dict(include={'danmaku_enabled', 'remote_censor', 'keyword_blacklist'}),
+                           json=room.dict(include={'danmaku_enabled', 'remote_censor', 'keyword_blacklist', 'user_danmaku_colors'}),
                            params={'mode': mode} if mode else None
                            )
