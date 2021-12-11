@@ -16,6 +16,7 @@ from aioredis.client import PubSub
 from httpx import AsyncClient
 from sanic import Sanic, Request, text, json
 import pulsar
+from starlette.types import Message
 
 with open('/private_key/private.key', 'rb') as f:
     private_key = serialization.load_der_private_key(f.read(), None)
@@ -104,7 +105,6 @@ async def setup(*args, **kwargs):
 
     sync_worker(token_channel, 'access_token', sync_token_cache)
 
-    # TODO: read from pulsar to recover data
     def sync_user_cache(key: str, value: str):
         if key not in user_cache:
             user_cache[key] = set()
@@ -287,6 +287,24 @@ async def token_put(request: Request, room: str):
     await redis.publish('access_token', f'{room}:{binary.decode()}')
     return text('success')
 
+async def resume_user_cache(room: str):
+    while True:
+        try:
+            reader = pulsar_client.create_reader(
+                f'persistent://public/default/user_{room}',
+                start_message_id=pulsar.MessageId.earliest
+            )
+            break
+        except:
+            await asyncio.sleep(30.0)
+    while True:
+        try:
+            message = reader.read_next(timeout_millis=3)
+            data: Mapping[str, str] = message.properties()
+            await redis.publish('room_user', f'{room}:{data["id"]}')
+        except:
+            break
+    reader.close()
 
 @app.put('/setting/<room:str>')  # replace room setting
 async def setting_put(request: Request, room: str):
@@ -296,6 +314,7 @@ async def setting_put(request: Request, room: str):
             return text('room not found', status=404)
         if mode == 'resume':
             await redis.publish('room_exist', f'{room}:1')
+            await resume_user_cache(room)
 
     state: MutableMapping = jsonlib.loads(request.body)
     enable = int(state['danmaku_enabled'])

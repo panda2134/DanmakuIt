@@ -17,6 +17,8 @@ services:
       - ./docker/entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
     expose: # nop, documentation only
       - "8000"
+    depends_on:
+      - redis
   
   pulsar:
     image: pulsar # with httpx for functions worker
