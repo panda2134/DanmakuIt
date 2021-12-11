@@ -15,6 +15,7 @@
       :room-id="room.room_id"
       :initial-name="room.name"
       :initial-danmaku-enabled="room.danmaku_enabled"
+      :initial-colors="room.user_danmaku_colors"
       @room-update="$fetch"
     />
     <wechat-official-account-info-card

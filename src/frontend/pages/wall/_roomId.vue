@@ -54,7 +54,7 @@
         >
           <v-list-item three-line>
             <v-list-item-avatar tile size="100">
-              <v-img :src="getUserInfo(danmaku.sender).headimgurl" />
+              <v-img eager :src="getUserInfo(danmaku.sender).headimgurl" />
             </v-list-item-avatar>
             <v-list-item-content>
               <h3 class="danmaku--user">

@@ -1,6 +1,7 @@
 <template>
   <v-container>
-    <room-detail-header :room-id="room.room_id" :room-name="room.name" />
+    <room-detail-header :room-id="room.room_id" :room-name="room.name" class="mb-4" />
+    <admin-danmaku-card :room-id="room.room_id" />
   </v-container>
 </template>
 

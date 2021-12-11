@@ -12,7 +12,9 @@
         <div style="margin-top: -16px" class="mb-6">
           自动审核需站长在配置文件中正确填写API Token后方可启用，目前接入的是百度智能审核。关闭后，所有弹幕都需要人工审核。
         </div>
-        <span class="subtitle-1 grey--text text--darken-4">关键词黑名单</span>
+        <label>
+          关键词黑名单
+        </label>
         <v-text-field
           v-model="newKeywordInput"
           single-line
