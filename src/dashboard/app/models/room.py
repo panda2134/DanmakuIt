@@ -47,11 +47,11 @@ class Room(RoomNameModel):
     pulsar_jwt: str
     wechat_token: str
     wechat_encrypted: bool = Field(False)
-    wechat_encryption_key: Optional[str]
-    wechat_appid: Optional[str]
-    wechat_appsecret: Optional[str]
-    wechat_access_token: Optional[str]  # for QR code generation
-    user_danmaku_colors: Optional[List[str]]
+    wechat_encryption_key: str = Field('')
+    wechat_appid: str = Field('')
+    wechat_appsecret: str = Field('')
+    wechat_access_token: str = Field('')  # for QR code generation
+    user_danmaku_colors: List[str] = Field([])
 
 
 class RoomUpdate(BaseModel):
