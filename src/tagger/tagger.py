@@ -93,9 +93,11 @@ class TaggingFunction(Function):
 
         room_state = self.state_cache.get(room, {})
         patterns = self.re_cache.get(room, [])
-        permission = all(p.search(content) is None for p in patterns)
-        if permission and room_state.get('remote_censor'):
-            permission = await self.remote_censor(content)
+        permission = False  # when remote censor is off, every danmaku shall be checked manually
+        if room_state.get('remote_censor'):
+            permission = all(p.search(content) is None for p in patterns)
+            if permission:
+                permission = await self.remote_censor(content)
         
         colors = room_state.get('user_danmaku_colors') or ['undefined']
 
