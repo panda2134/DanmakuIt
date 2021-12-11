@@ -65,7 +65,7 @@ class TaggingFunction(Function):
                 print('fetch access token fail')
                 await asyncio.sleep(5.0)  # retry 5s
 
-    async def remote_censor(self, text: str, retry_times: int = 0):
+    async def remote_censor(self, text: str, retry_times: int = 0) -> bool:
         while self.access_token_expiration < time.time():
             await asyncio.sleep(1.0)  # blocking until new access token has been fetched
 
