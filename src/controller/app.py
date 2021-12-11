@@ -240,14 +240,9 @@ async def feed_post(request: Request, room: str):
     users: List[str] = []
     next_openid: Optional[str] = None
     while True:
-        params = {'access_token': token}
-        # Cannot use next_openid: None in params directly,
-        # since it will be converted to ?next_openid=&access_token=...
-        if next_openid:
-            params['next_openid'] = next_openid
+        next_openid_query = f'&next_openid={next_openid}' if next_openid is not None else ''
         resp = await http_client.get(
-            'https://api.weixin.qq.com/cgi-bin/user/get',
-            params=params
+            f'https://api.weixin.qq.com/cgi-bin/user/get?access_token={token}{next_openid_query}',
         )
         if resp.status_code != 200:
             return text('Error fetch from wechat', status=500)
@@ -257,8 +252,9 @@ async def feed_post(request: Request, room: str):
         users.extend(resp_obj['data']['openid'])
         if len(users) >= resp_obj['total']:
             break
-        else:
-            next_openid = resp_obj.get('next_openid')
+        next_openid = resp_obj['next_openid']
+        if type(next_openid) is not str or len(next_openid) == 0:
+            return text('Error fetch from wechat', status=500)
 
     async def feed():
         batch_size = 100
