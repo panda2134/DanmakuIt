@@ -26,6 +26,8 @@ services:
       context: docker/build/pulsar
       dockerfile: Dockerfile
     entrypoint: ['bash', 'pulsar_entrypoint.sh']
+    env_file:
+      - api.env
     volumes:
       - ./public_key:/public_key
       - ./token:/token

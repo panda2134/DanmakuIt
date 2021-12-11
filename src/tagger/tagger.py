@@ -50,8 +50,8 @@ class TaggingFunction(Function):
     async def fetch_access_token(self):
         params = dict(
             grant_type='client_credentials',
-            client_id='***REMOVED***',
-            client_secret='***REMOVED***'
+            client_id=os.getenv('BAIDU_CLIENT_ID'),
+            client_secret=os.getenv('BAIDU_CLIENT_SECRET')
         )
         while True:
             resp = await self.httpClient.post('https://aip.baidubce.com/oauth/2.0/token', params=params)
