@@ -16,7 +16,6 @@ from aioredis.client import PubSub
 from httpx import AsyncClient
 from sanic import Sanic, Request, text, json
 import pulsar
-from starlette.types import Message
 
 with open('/private_key/private.key', 'rb') as f:
     private_key = serialization.load_der_private_key(f.read(), None)
