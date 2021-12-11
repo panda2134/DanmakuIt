@@ -2,6 +2,7 @@ import asyncio
 import threading
 import time
 import os
+import random
 import binascii
 import json
 import re
@@ -80,8 +81,8 @@ class TaggingFunction(Function):
         if resp_obj.get('error_code') != 18 or retry_times >= self.remote_censor_max_retry_times:
             return False
 
-        # qps limit, retry after 1 ~ 3.55 sec
-        await asyncio.sleep(1 + int.from_bytes(os.urandom(1), 'little') * 0.01)
+        # qps limit, retry after [1.0, 4.0) sec
+        await asyncio.sleep(1.0 + random.random() * 3.0)
         return await self.remote_censor(text, retry_times + 1)
 
     async def tag(self, input: bytes, context: Context):
@@ -95,6 +96,8 @@ class TaggingFunction(Function):
         permission = all(p.search(content) is None for p in patterns)
         if permission and room_state.get('remote_censor'):
             permission = await self.remote_censor(content)
+        
+        colors = room_state.get('user_danmaku_colors') or ['undefined']
 
         # internal send_async
         context.publish(
@@ -106,7 +109,7 @@ class TaggingFunction(Function):
                 id=binascii.b2a_base64(os.urandom(24), newline=False).decode(),
                 sender=obj['sender'],
                 permission='1' if permission else '0',  # properties must be string
-                color=room_state.get('color', 'undefined'),
+                color=random.choice(colors),
                 size=room_state.get('size', '16pt'),
                 pos=room_state.get('pos', 'rightleft')
             )
@@ -116,7 +119,7 @@ class TaggingFunction(Function):
         if context.get_current_message_topic_name() == 'persistent://public/default/state':
             room, state_str = json.loads(input.decode())
             room_state: Mapping[str, Any] = json.loads(state_str)
-            self.state_cache[room] = {key: room_state[key] for key in ('remote_censor',)}
+            self.state_cache[room] = {key: room_state[key] for key in ('remote_censor', 'user_danmaku_colors')}
             self.re_cache[room] = [re.compile('.*?'.join(list(keyword))) for keyword in room_state['keyword_blacklist']]
             return
 
