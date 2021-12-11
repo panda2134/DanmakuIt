@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+import zhHans from 'vuetify/lib/locale/zh-Hans'
 
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
@@ -31,7 +32,12 @@ export default {
       { name: 'theme-color', content: '#aaaaaa' } // android task menu
     ],
     link: [
-      { rel: 'stylesheet', href: 'https://fonts.googleapis.cnpmjs.org/css?family=Roboto:100,300,400,500,700,900' },
+      { rel: 'preconnect', href: 'https://cdn.jsdelivr.net' },
+      { rel: 'preconnect', href: 'https://fonts.googleapis.cnpmjs.org' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.cnpmjs.org' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.cnpmjs.org/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.cnpmjs.org/css2?family=ZCOOL+KuaiLe&display=swap' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.cnpmjs.org/css2?family=Noto+Sans+SC:wght@100;300;400;500;700;900&family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&display=swap' },
       { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
       { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
       { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
@@ -81,6 +87,10 @@ export default {
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
+    lang: {
+      locales: { zhHans },
+      current: 'zhHans'
+    },
     treeShake: {
       components: ['VSnackbar', 'VBtn', 'VIcon']
     },

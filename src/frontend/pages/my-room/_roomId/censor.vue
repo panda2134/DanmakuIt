@@ -1,7 +1,8 @@
 <template>
   <v-container>
-    <room-detail-header :room-id="room.room_id" :room-name="room.name" class="mb-4" />
-    <admin-danmaku-card :room-id="room.room_id" />
+    <room-detail-header :room-id="room.room_id" :room-name="room.name" page-name="弹幕审核" />
+    <admin-danmaku-card :room-id="room.room_id" class="mb-5" />
+    <danmaku-censor :room-id="room.room_id" />
   </v-container>
 </template>
 

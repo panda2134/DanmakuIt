@@ -78,7 +78,7 @@ export default Vue.extend({
     valid: true,
     danmakuContent: '',
     danmakuType: 'rightleft' as DanmakuType,
-    danmakuColor: '#aa0000',
+    danmakuColor: '#f57c00',
     fontSize: 16,
     loading: false
   }),
