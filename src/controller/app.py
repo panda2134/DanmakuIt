@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 from time import time
 import os
 
-from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence, Union, List
+from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence, Union
 
 from cryptography.hazmat.primitives import serialization
 import jwt
@@ -92,7 +92,7 @@ def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
             if message is None:
                 continue
             data: str = message['data']
-            func(*data.split(':'))
+            func(*data.split(':', maxsplit=1))
 
     app.add_task(wrapper())
 
@@ -241,7 +241,7 @@ async def feed_post(request: Request, room: str):
         return text('room access token not found', status=403)
 
     token = token_cache[room]
-    users: List[str] = []
+    users = []
     next_openid: Optional[str] = None
     while True:
         next_openid_query = f'&next_openid={next_openid}' if next_openid is not None else ''
