@@ -76,7 +76,8 @@ export default Vue.extend({
     detailedConsumers (): ConsumerData[] {
       const ret: ConsumerData[] = []
       for (const subscription of this.subscriptions) {
-        const split = subscription.subscription_name.split('~', 2)
+        const subName = subscription.subscription_name.replace('reader-', 'Censor~')
+        const split = subName.split('~', 2)
         subscription.consumers.forEach((x) => {
           ret.push({
             type: split[0],

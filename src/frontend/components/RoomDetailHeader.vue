@@ -53,6 +53,10 @@ export default Vue.extend({
     roomName: {
       type: String,
       required: true
+    },
+    pageName: {
+      type: String,
+      default: ''
     }
   },
   computed: {
@@ -60,17 +64,25 @@ export default Vue.extend({
     roomConnectPath () { return `/my-room/${this.roomId}/connect` },
     roomCensorPath () { return `/my-room/${this.roomId}/censor` },
     breadcrumbs (): any[] {
-      return [
+      const ret: any[] = [
         {
           link: true,
           text: '我的房间',
           to: '/my-room',
           exact: true
-        },
-        {
-          text: this.roomName
         }
       ]
+      if (this.pageName) {
+        ret.push({
+          link: true,
+          text: this.roomName,
+          to: `/my-room/${this.roomId}`,
+          exact: true
+        }, { text: this.pageName })
+      } else {
+        ret.push({ text: this.roomName })
+      }
+      return ret
     }
   }
 })

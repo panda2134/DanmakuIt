@@ -101,8 +101,13 @@ export class DanmakuWallClient {
       this.wsDanmaku.close()
     }
     const subscriptionName = this.subscriptionNamePrefix + '~' + nanoid()
-    this.wsDanmaku = new WebSocket('wss://danmakuit.panda2134.site/websocket/' +
-      `consumer/persistent/public/default/${this.roomId}/${subscriptionName}?token=${this.pulsarJWT}`)
+    if (this.subscriptionNamePrefix === 'DanmakuWall') {
+      this.wsDanmaku = new WebSocket('wss://danmakuit.panda2134.site/websocket/' +
+        `consumer/persistent/public/default/${this.roomId}/${subscriptionName}?token=${this.pulsarJWT}`)
+    } else {
+      this.wsDanmaku = new WebSocket('wss://danmakuit.panda2134.site/websocket/' +
+        `reader/persistent/public/default/${this.roomId}?messageId=earliest&token=${this.pulsarJWT}`)
+    }
     this.wsDanmaku.onmessage = (msg) => {
       const pulsarData = JSON.parse(msg.data)
       if (pulsarData.messageId) {

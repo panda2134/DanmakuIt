@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <room-detail-header :room-id="room.room_id" :room-name="room.name" />
+    <room-detail-header :room-id="room.room_id" :room-name="room.name" page-name="连接设备" />
     <device-info-card class="mb-5" :room-id="room.room_id" :passcode="room.room_passcode" />
     <connected-device-list-card class="mb-5" :room-id="room.room_id" />
   </v-container>
