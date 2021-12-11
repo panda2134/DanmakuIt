@@ -123,11 +123,20 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
 async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    res = await get_db()['room'].delete_one(room_query)
-    if res.deleted_count == 0:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
+    
+    resp = await http_client.delete(f'{app_config.controller_url}/room/{room_id}')
+    if not resp.is_success:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot delete the room in controller. {resp.text}')
 
-    # TODO: push deletion of room to pulsar
+    res = await get_db()['room'].delete_one(room_query)
+    retry = 0
+    while res.deleted_count == 0:
+        if (retry := retry + 1) > 5:
+            # can we roll back?
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
+        await asyncio.sleep(2.0)
+        res = await get_db()['room'].delete_one(room_query)
     return {'room_id': room_id}
 
 

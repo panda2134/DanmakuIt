@@ -168,6 +168,7 @@ async def room_post(request: Request, room: str):
 
     resp = await http_client.put(f'{prefix}/user_{room}')
     if resp.status_code not in {204, 409}:
+        # It is impossible to do atomic transaction through stateless RESTful API
         return text(f'create user topic error: {resp.status_code}', status=500)
 
     infinite_retention = dict(retentionTimeInMinutes=-1, retentionSizeInMB=-1)
@@ -181,11 +182,11 @@ async def room_post(request: Request, room: str):
         return text(f'user topic set retention error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/{room}/permissions/display_{room}', json=['consume'])
-    if resp.status_code != 204:
+    if not resp.is_success:
         return text(f'danmaku topic grant permission error: {resp.status_code}', status=500)
 
     resp = await http_client.post(f'{prefix}/user_{room}/permissions/display_{room}', json=['consume'])
-    if resp.status_code != 204:
+    if not resp.is_success:
         return text(f'user topic grant permission error: {resp.status_code}', status=500)
 
     await redis.publish('room_exist', f'{room}:1')
@@ -193,6 +194,18 @@ async def room_post(request: Request, room: str):
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
     return text(token)
 
+
+@app.delete('/room/<room:str>')
+async def room_delete(request: Request, room: str):
+    prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
+    resp = await http_client.delete(f'{prefix}/{room}/permissions/display_{room}')
+    if not resp.is_success:
+        return text(f'danmaku topic revoke permission error: {resp.status_code}', status=500)
+
+    resp = await http_client.delete(f'{prefix}/user_{room}/permissions/display_{room}')
+    if not resp.is_success:
+        return text(f'user topic revoke permission error: {resp.status_code}', status=500)
+    return text('success')
 
 async def fetch_users(room: str, users: Sequence[str]):
     token = token_cache[room]
