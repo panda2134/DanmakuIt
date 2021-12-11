@@ -42,9 +42,6 @@
                   </v-card-text>
                   <v-card-actions>
                     <v-spacer />
-                    <!--                    <v-btn text @click="showColorDialog=false">-->
-                    <!--                      取消-->
-                    <!--                    </v-btn>-->
                     <v-btn text color="primary" :disabled="!isNewColorValid" @click="addColor">
                       添加
                     </v-btn>
