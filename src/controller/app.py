@@ -25,10 +25,9 @@ super_user_token = jwt.encode({'sub': 'super-user'}, private_key, algorithm='RS2
 http_client = AsyncClient(headers={'Authorization': f'Bearer {super_user_token}'})
 pulsar_client = pulsar.Client('pulsar://pulsar:6650', pulsar.AuthenticationToken(super_user_token))
 raw_producer: Optional[pulsar.Producer] = None
-danmaku_producer: Optional[pulsar.Producer] = None
 state_update_producer: Optional[pulsar.Producer] = None
 user_producers: MutableMapping[str, pulsar.Producer] = {}
-room_producers: MutableMapping[str, pulsar.Producer] = {}
+danmaku_producers: MutableMapping[str, pulsar.Producer] = {}
 
 redis: aioredis.Redis = aioredis.from_url('redis://redis:6379/0', encoding="utf-8", decode_responses=True)
 token_channel = redis.pubsub()
@@ -54,18 +53,6 @@ def get_raw_producer():
         )
     return raw_producer
 
-
-def get_danmaku_producer_for_room(room: str) -> pulsar.Producer:
-    if room not in room_producers:
-        room_producers[room] = pulsar_client.create_producer(
-            f'persistent://public/default/{room}',
-            block_if_queue_full=True,
-            batching_enabled=True,
-            batching_max_publish_delay_ms=10
-        )
-    return room_producers[room]
-
-
 def get_state_update_producer():
     global state_update_producer
     if state_update_producer is None:
@@ -74,6 +61,16 @@ def get_state_update_producer():
             block_if_queue_full=True
         )
     return state_update_producer
+
+def get_danmaku_producer(room: str) -> pulsar.Producer:
+    if room not in danmaku_producers:
+        danmaku_producers[room] = pulsar_client.create_producer(
+            f'persistent://public/default/{room}',
+            block_if_queue_full=True,
+            batching_enabled=True,
+            batching_max_publish_delay_ms=10
+        )
+    return danmaku_producers[room]
 
 
 def get_user_producer(room: str):
@@ -136,7 +133,7 @@ async def cleanup(*args, **kwargs):
     state_update_producer.flush() if state_update_producer is not None else None
     for v in user_producers.values():
         v.flush()
-    for v in room_producers.values():
+    for v in danmaku_producers.values():
         v.flush()
 
     pulsar_client.close()
@@ -305,7 +302,7 @@ async def setting_put(request: Request, room: str):
 async def danmaku_admin_post(request: Request, room: str):
     danmaku = request.json
     content = b'\x00\x00\x00' if danmaku.get('sender') == 'admin' else b'\x00\x00\x01'
-    get_danmaku_producer_for_room(room).send_async(
+    get_danmaku_producer(room).send_async(
         content=content,
         properties=danmaku,
         callback=lambda *_: None
