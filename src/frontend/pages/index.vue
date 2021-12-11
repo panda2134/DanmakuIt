@@ -1,10 +1,10 @@
 <template>
   <div>
     <v-container class="d-flex flex-column justify-center align-center" style="height: 100vh">
-      <header class="d-flex flex-row align-center my-8">
+      <header class="d-flex flex-md-row flex-column justify-center align-center my-8">
         <!--suppress CheckImageSize -->
         <img srcset="/icon.webp 412w, /icon.png 412w" src="/icon.png" height="160" width="160" alt="icon">
-        <h1 class="ml-12">
+        <h1 class="ml-md-12">
           弹幕一下
         </h1>
       </header>

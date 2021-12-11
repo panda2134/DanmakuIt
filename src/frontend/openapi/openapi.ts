@@ -55,7 +55,7 @@ export interface paths {
     post: operations["danmaku_update_room__room_id__danmaku_update_post"];
   };
   "/room/{room_id}/consumers": {
-    /** Get the online subscriptions of a room. */
+    /** Get the online consumers of a room. */
     get: operations["online_consumers_room__room_id__consumers_get"];
   };
 }
@@ -429,7 +429,7 @@ export interface operations {
       };
     };
   };
-  /** Get the online subscriptions of a room. */
+  /** Get the online consumers of a room. */
   online_consumers_room__room_id__consumers_get: {
     parameters: {
       path: {
