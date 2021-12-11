@@ -33,7 +33,7 @@ redis: aioredis.Redis = aioredis.from_url('redis://redis:6379/0', encoding="utf-
 token_channel = redis.pubsub()
 token_cache: MutableMapping[str, str] = {}
 user_channel = redis.pubsub()
-user_cache: MutableMapping[str, MutableSet] = {}
+user_cache: MutableMapping[str, MutableSet[str]] = {}
 room_exist_channel = redis.pubsub()
 room_exist_cache: MutableSet[str] = set()
 room_enable_channel = redis.pubsub()
@@ -206,12 +206,15 @@ async def fetch_users(room: str, users: Sequence[str]):
         )
 
     resp = await batch_get_user_info()
+    retry = 0
     while not resp.is_success:
+        if (retry := retry + 1) > 5:
+            return False
         await asyncio.sleep(2.0)
         resp = await batch_get_user_info()
     resp_obj: Mapping[str, Any] = resp.json()
     if 'errorcode' in resp_obj:
-        return False  # TODO: error handling
+        return False
     user_info_list: Sequence[Mapping[str, Union[str, Any]]] = resp_obj['user_info_list']
     data_list = [
         dict(
@@ -226,6 +229,7 @@ async def fetch_users(room: str, users: Sequence[str]):
             callback=lambda *_: None,
             properties=data
         )
+        redis.publish('room_user', f'{room}:{data["id"]}')
     return True
 
 
@@ -259,9 +263,8 @@ async def feed_post(request: Request, room: str):
     async def feed():
         batch_size = 100
         for i in range(0, len(users), batch_size):
-            res = await fetch_users(room, users[i:i + batch_size])
-            if not res:
-                break
+            if not await fetch_users(room, users[i:i + batch_size]):
+                break # TODO: error handling
 
     app.add_task(feed())
     return text('success')
@@ -296,8 +299,8 @@ async def setting_put(request: Request, room: str):
 
 @app.post('/danmaku-admin/<room:str>')  # post danmaku
 async def danmaku_admin_post(request: Request, room: str):
-    danmaku = request.json
-    content = b'\x00\x00\x00' if danmaku.get('sender') == 'admin' else b'\x00\x00\x01'
+    danmaku: Mapping[str, str] = request.json
+    content = b'\x00\x00\x00' if danmaku.get('sender', '').startswith('admin') else b'\x00\x00\x01'
     get_danmaku_producer(room).send_async(
         content=content,
         properties=danmaku,
@@ -315,12 +318,18 @@ success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
 
+def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/=', b'LLLooXYZ')) -> str:
+    return b2a_base64(sha256(binary).digest(), newline=False).translate(readable_char_table).decode()
+
+def get_token(room: str):
+    return readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]
 
 @app.post('/port/<room:str>')  # wechat send danmaku
 async def port_post(request: Request, room: str):
     token: Optional[str] = request.get_args().get('token')
-    if token != readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]:
+    if token != get_token(room):
         return text('token error', status=401)
+
     data: Mapping[str, str] = {el.tag: el.text for el in ElementTree.fromstring(request.body)}
     from_user = data.get('FromUserName', '')
     developer_account = data.get('ToUserName', '')
@@ -355,7 +364,9 @@ async def port_post(request: Request, room: str):
     if content == '【收到不支持的消息类型，暂无法显示】':
         return reply_xml(not_support)
 
-    sender = 'user@wechat:' + from_user  # add user@wechat: prefix; client should strip this before getting the avatar
+    sender = 'user@wechat:' + from_user
+    if sender not in user_cache[room]:
+        app.add_task(fetch_users(room, [from_user]))
     get_raw_producer().send_async(
         content=jsonlib.dumps(
             dict(
@@ -368,10 +379,6 @@ async def port_post(request: Request, room: str):
         callback=lambda *_: None
     )
     return reply_xml(success)
-
-
-def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/=', b'LLLooXYZ')) -> str:
-    return b2a_base64(sha256(binary).digest(), newline=False).translate(readable_char_table).decode()
 
 
 @app.get('/port/<room:str>')  # wechat access
