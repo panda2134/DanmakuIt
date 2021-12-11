@@ -130,6 +130,14 @@ export default Vue.extend({
         throw e
       }
     }
+  },
+  beforeDestroy () {
+    if (this.wsUserInfo) {
+      this.wsUserInfo.close()
+    }
+    if (this.wsDanmaku) {
+      this.wsDanmaku.close()
+    }
   }
 })
 </script>

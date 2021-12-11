@@ -46,7 +46,7 @@
     "eslint": "^7.29.0",
     "eslint-plugin-nuxt": "^2.0.0",
     "eslint-plugin-vue": "^7.12.1",
-    "jsdom": "^16.6.0",
+    "jsdom": "^19.0.0",
     "jsdom-global": "^3.0.2",
     "require-extension-hooks": "^0.3.3",
     "require-extension-hooks-babel": "^1.0.0",
