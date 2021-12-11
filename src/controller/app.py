@@ -365,7 +365,7 @@ async def port_post(request: Request, room: str):
         return reply_xml(not_support)
 
     sender = 'user@wechat:' + from_user
-    if sender not in user_cache[room]:
+    if room not in user_cache or sender not in user_cache[room]:
         app.add_task(fetch_users(room, [from_user]))
     get_raw_producer().send_async(
         content=jsonlib.dumps(
