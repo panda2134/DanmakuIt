@@ -309,7 +309,9 @@ async def danmaku_admin_post(request: Request, room: str):
 
 room_not_found = '房间不存在'
 room_disable = '房间未开启弹幕'
-not_support = os.getenv('WECHAT_DANMAKU_REPLY_FAIL', '暂不支持这种消息哦')
+not_support = os.getenv('WECHAT_DANMAKU_REPLY_NOT_SUPPORT', '暂不支持这种消息哦~')
+danmaku_maxlen = int(os.getenv('WECHAT_DANMAKU_MAXLEN', '50'))
+exceed_maxlen = os.getenv('WECHAT_DANMAKU_REPLY_EXCEED_MAXLEN', '啊，消息太长啦，塞不进去哦~')
 success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之后会推送上墙~')
 
 
@@ -361,6 +363,9 @@ async def port_post(request: Request, room: str):
     content = data.get('Content', '')
     if content == '【收到不支持的消息类型，暂无法显示】':
         return reply_xml(not_support)
+    
+    if len(content) > danmaku_maxlen:
+        return reply_xml(exceed_maxlen)
 
     sender = 'user@wechat:' + from_user
     if room not in user_cache or sender not in user_cache[room]:
