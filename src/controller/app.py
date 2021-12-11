@@ -245,9 +245,7 @@ async def feed_post(request: Request, room: str):
     next_openid: Optional[str] = None
     while True:
         next_openid_query = f'&next_openid={next_openid}' if next_openid is not None else ''
-        resp = await http_client.get(
-            f'https://api.weixin.qq.com/cgi-bin/user/get?access_token={token}{next_openid_query}',
-        )
+        resp = await http_client.get(f'https://api.weixin.qq.com/cgi-bin/user/get?access_token={token}{next_openid_query}')
         if resp.status_code != 200:
             return text('Error fetch from wechat', status=500)
         resp_obj: Mapping[str, Any] = resp.json()
