@@ -39,6 +39,7 @@
 import Vue from 'vue'
 import copy from 'fast-copy'
 import { DanmakuWallClient, DanmakuUserInfoCacheClient, PulsarEvent, Danmaku } from '~/websocket/DanmakuWallClient'
+import { throttle } from 'throttle-debounce'
 
 interface CensorItem {
   id: string;
@@ -62,6 +63,8 @@ interface CensorData {
     sortable?: boolean
   }[]
 }
+
+const danmakuCache: CensorItem[] = []
 
 export default Vue.extend({
   name: 'DanmakuCensor',
@@ -99,6 +102,11 @@ export default Vue.extend({
     this.wsUserInfo = new DanmakuUserInfoCacheClient(this.roomId, room.pulsar_jwt)
   },
   methods: {
+    clearDanmakuCache: throttle(200, function () {
+      // @ts-ignore
+      (this as any).danmakuList.push(...danmakuCache)
+      danmakuCache.length = 0
+    }),
     handleDanmaku (ev: PulsarEvent<Danmaku>) {
       if (ev.payload === 'AAAB') {
         return // update danmaku
@@ -108,7 +116,7 @@ export default Vue.extend({
       if (!danmaku.id) {
         return
       }
-      this.danmakuList.push({
+      danmakuCache.push({
         id: danmaku.id,
         time: new Date(ev.publishTime),
         avatar: danmaku.sender === 'admin' ? '/admin.png' : (userInfo?.headimgurl ?? ''),
@@ -117,6 +125,7 @@ export default Vue.extend({
         pass: danmaku.permission === '1',
         originalData: danmaku
       })
+      this.clearDanmakuCache()
     },
     async toggleCensor (item: CensorItem) {
       try {
