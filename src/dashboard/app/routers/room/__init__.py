@@ -129,14 +129,12 @@ async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f'Cannot delete the room in controller. {resp.text}')
 
-    res = await get_db()['room'].delete_one(room_query)
     retry = 0
-    while res.deleted_count == 0:
-        if (retry := retry + 1) > 5:
-            # can we roll back?
+    while (await get_db()['room'].delete_one(room_query)).deleted_count == 0:
+        if (retry := retry + 1) > 5: # can we roll back?
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
         await asyncio.sleep(2.0)
-        res = await get_db()['room'].delete_one(room_query)
+
     return {'room_id': room_id}
 
 

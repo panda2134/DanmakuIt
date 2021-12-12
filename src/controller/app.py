@@ -217,13 +217,12 @@ async def fetch_users(room: str, users: Sequence[str]):
             params={'access_token': token}
         )
 
-    resp = await batch_get_user_info()
     retry = 0
-    while not resp.is_success:
+    while not (resp := await batch_get_user_info()).is_success:
         if (retry := retry + 1) > 5:
             return False
         await asyncio.sleep(2.0)
-        resp = await batch_get_user_info()
+
     resp_obj: Mapping[str, Any] = resp.json()
     if 'errorcode' in resp_obj:
         return False
