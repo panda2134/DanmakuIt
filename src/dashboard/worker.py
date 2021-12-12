@@ -28,10 +28,12 @@ class WeChatAccessTokenReply(BaseModel):
 async def resume_controller(ctx: Mapping[str, Any]):
     async for room_obj in get_db()['room'].find():
         room = Room.parse_obj(room_obj)
-        resp = await push_setting(ctx['http_client'], room.room_id, room, mode='resume')
-        while not resp.is_success:
-            await asyncio.sleep(2.0)
-            resp = await push_setting(ctx['http_client'], room.room_id, room, mode='resume')
+        while True:
+            try:
+                (await push_setting(ctx['http_client'], room.room_id, room, mode='resume')).raise_for_status()
+                break
+            except:
+                await asyncio.sleep(5.0)
 
 
 async def refresh_wechat_access_token_all(ctx: Mapping[str, Any]):
@@ -78,7 +80,12 @@ async def refresh_wechat_access_token_room(ctx: Mapping[str, Any], room_id, wech
     reply = WeChatAccessTokenReply.parse_obj(resp_obj)
     # store for QR code generation
     await get_db()['room'].update_one({'room_id': room_id}, {'$set': {'wechat_access_token': reply.access_token}})
-    await http_client.put(f'{app_config.controller_url}/token/{room_id}', content=reply.access_token)
+    while True:
+        try:
+            (await http_client.put(f'{app_config.controller_url}/token/{room_id}', content=reply.access_token)).raise_for_status()
+            break
+        except:
+            await asyncio.sleep(5.0)
     logger.info(f'Room {room_id} access_token pushed to controller')
 
     bg_queue: ArqRedis = ctx['redis']
