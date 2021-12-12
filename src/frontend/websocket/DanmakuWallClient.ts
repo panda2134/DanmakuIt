@@ -43,7 +43,8 @@ export class DanmakuUserInfoCacheClient {
   private readonly wsUserInfo: ReconnectingWebSocket
   private userInfoMap: Map<string, UserInfo>
   private keepAliveTimer?: ReturnType<typeof setInterval>
-  constructor (public readonly roomId: string, public readonly pulsarJWT: string) {
+  constructor (public readonly roomId: string, public readonly pulsarJWT: string,
+               public onPush: (ev: PulsarEvent<UserInfo>) => void = dummyHandler) {
     this.userInfoMap = new Map<string, UserInfo>()
     const url = 'wss://danmakuit.panda2134.site/websocket/' +
       `reader/persistent/public/default/user_${this.roomId}` +
@@ -63,6 +64,7 @@ export class DanmakuUserInfoCacheClient {
         // we've met a userinfo event
         this.wsUserInfo.send(JSON.stringify({ messageId: pulsarData.messageId })) // ACK
         this.handleUserInfo(pulsarData)
+        this.onPush(pulsarData)
       }
     }
   }

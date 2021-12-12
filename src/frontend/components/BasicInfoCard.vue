@@ -17,14 +17,16 @@
                   :key="color"
                   :color="color"
                   class="mb-1 mr-2"
+                  close
                   dark
+                  @click:close="removeColor(color)"
                 >
                   {{ color }}
                 </v-chip>
               </div>
             </template>
             <template #append>
-              <v-menu v-model="showColorDialog" max-width="398" left>
+              <v-menu v-model="showColorDialog" max-width="398" left :close-on-content-click="false">
                 <template #activator="{ on }">
                   <v-btn icon v-on="on">
                     <v-icon>
@@ -37,7 +39,7 @@
                     选择一种弹幕颜色
                   </v-card-title>
                   <v-card-text>
-                    <v-color-picker v-model="newColor" show-swatches width="350" />
+                    <v-color-picker show-swatches width="350" :value="newColor" @update:color="updateNewColor" />
                     <span v-show="!isNewColorValid" class="error--text">颜色重复。</span>
                   </v-card-text>
                   <v-card-actions>
@@ -108,9 +110,16 @@ export default Vue.extend({
     }
   },
   methods: {
+    updateNewColor (color: { hex: string; }) {
+      this.newColor = color.hex
+    },
     addColor () {
       this.colors.push(this.newColor)
       this.showColorDialog = false
+      this.newColor = ''
+    },
+    removeColor (color: string) {
+      this.colors = this.colors.filter(x => x !== color)
     },
     async submitBasicInfo (): Promise<void> {
       const roomUpdate: RoomUpdate = {

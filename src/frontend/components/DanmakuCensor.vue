@@ -2,18 +2,26 @@
   <v-card>
     <v-card-title>
       弹幕审核
+      <div class="ml-4">
+        <v-icon large :color="connected ? 'success' : 'error'">
+          mdi-circle-small
+        </v-icon>
+        <span class="text-caption">{{ connected ? '已连接' : '连接中' }}</span>
+      </div>
       <v-spacer />
-      <v-icon large :color="connected ? 'success' : 'error'">
-        mdi-circle-small
-      </v-icon>
-      <span class="text-caption">{{ connected ? '已连接' : '连接中' }}</span>
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
     </v-card-title>
     <v-card-text>
       <v-data-table
         :headers="headers"
         :items="danmakuList"
-        sort-by="time"
-        sort-desc
+        :search="search"
         item-key="id"
       >
         <template v-slot:item.id="{ item }">
@@ -38,7 +46,13 @@
 <script lang="ts">
 import Vue from 'vue'
 import copy from 'fast-copy'
-import { DanmakuWallClient, DanmakuUserInfoCacheClient, PulsarEvent, Danmaku } from '~/websocket/DanmakuWallClient'
+import {
+  DanmakuWallClient,
+  DanmakuUserInfoCacheClient,
+  PulsarEvent,
+  Danmaku,
+  UserInfo
+} from '~/websocket/DanmakuWallClient'
 import { throttle } from 'throttle-debounce'
 
 interface CensorItem {
@@ -61,10 +75,27 @@ interface CensorData {
     value: string;
     align?: string;
     sortable?: boolean
-  }[]
+  }[];
+  search: string;
 }
 
 const danmakuCache: CensorItem[] = []
+
+function makeCensorItem (danmaku: Danmaku, publishTime: string, wsUserInfo: DanmakuUserInfoCacheClient | null) {
+  const userInfo = wsUserInfo?.getUserInfo(danmaku.sender)
+  if (!danmaku.id) {
+    return null
+  }
+  return {
+    id: danmaku.id,
+    time: new Date(publishTime),
+    avatar: danmaku.sender === 'admin' ? '/admin.png' : (userInfo?.headimgurl ?? ''),
+    username: danmaku.sender === 'admin' ? '管理员' : (userInfo?.nickname ?? danmaku.sender),
+    content: danmaku.content,
+    pass: danmaku.permission === '1',
+    originalData: danmaku
+  }
+}
 
 export default Vue.extend({
   name: 'DanmakuCensor',
@@ -80,6 +111,7 @@ export default Vue.extend({
       wsUserInfo: null,
       connected: false,
       danmakuList: [],
+      search: '',
       headers: [{ text: '#id', value: 'id' }, { text: '时间', value: 'time', sortable: true },
         { text: '头像', value: 'avatar' },
         { text: '发送人', value: 'username' }, { text: '内容', value: 'content' },
@@ -99,12 +131,20 @@ export default Vue.extend({
       },
       'Censor'
     )
-    this.wsUserInfo = new DanmakuUserInfoCacheClient(this.roomId, room.pulsar_jwt)
+    this.wsUserInfo = new DanmakuUserInfoCacheClient(this.roomId, room.pulsar_jwt, this.userInfoUpdate)
   },
   methods: {
-    clearDanmakuCache: throttle(200, function () {
-      // @ts-ignore
-      (this as any).danmakuList.push(...danmakuCache)
+    userInfoUpdate: throttle(300, function (this: CensorData & {  }, ev: PulsarEvent<UserInfo>) {
+      console.log('!!user info update')
+      for (const x of this.danmakuList) {
+        console.log(x.originalData.sender, ev.properties.id)
+        if (x.originalData.sender === ev.properties.id) {
+          Object.assign(x, makeCensorItem(x.originalData, x.time.toISOString(), this.wsUserInfo))
+        }
+      }
+    }),
+    clearDanmakuCache: throttle(200, function (this: CensorData) {
+      this.danmakuList.push(...danmakuCache)
       danmakuCache.length = 0
     }),
     handleDanmaku (ev: PulsarEvent<Danmaku>) {
@@ -112,19 +152,14 @@ export default Vue.extend({
         return // update danmaku
       }
       const danmaku = ev.properties
-      const userInfo = this.wsUserInfo?.getUserInfo(danmaku.sender)
-      if (!danmaku.id) {
+      if (!this.wsUserInfo) {
+        this.clearDanmakuCache()
         return
       }
-      danmakuCache.push({
-        id: danmaku.id,
-        time: new Date(ev.publishTime),
-        avatar: danmaku.sender === 'admin' ? '/admin.png' : (userInfo?.headimgurl ?? ''),
-        username: danmaku.sender === 'admin' ? '管理员' : (userInfo?.nickname ?? danmaku.sender),
-        content: danmaku.content,
-        pass: danmaku.permission === '1',
-        originalData: danmaku
-      })
+      const item = makeCensorItem(danmaku, ev.publishTime, this.wsUserInfo)
+      if (item) {
+        danmakuCache.push(item)
+      }
       this.clearDanmakuCache()
     },
     async toggleCensor (item: CensorItem) {
