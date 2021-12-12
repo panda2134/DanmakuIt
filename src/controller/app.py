@@ -204,6 +204,19 @@ async def room_delete(request: Request, room: str):
     resp = await http_client.delete(f'{prefix}/user_{room}/permissions/display_{room}')
     if not resp.is_success:
         return text(f'user topic revoke permission error: {resp.status_code}', status=500)
+
+    no_retention = dict(retentionTimeInMinutes=0, retentionSizeInMB=0)
+
+    resp = await http_client.post(f'{prefix}/{room}/retention', json=no_retention)
+    if not resp.is_success:
+        return text(f'danmaku topic set retention error: {resp.status_code}', status=500)
+
+    resp = await http_client.post(f'{prefix}/user_{room}/retention', json=no_retention)
+    if not resp.is_success:
+        return text(f'user topic set retention error: {resp.status_code}', status=500)
+    
+    await redis.publish('room_enable', f'{room}:0')
+    await redis.publish('room_exist', f'{room}:0')
     return text('success')
 
 async def fetch_users(room: str, users: Sequence[str]):
