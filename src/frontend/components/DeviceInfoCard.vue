@@ -27,7 +27,7 @@
             icon
             depressed
             color="grey darken-2"
-            @click="copyText(passcode)"
+            @click="copyText(roomId)"
           >
             <v-icon>mdi-clipboard</v-icon>
           </v-btn>
