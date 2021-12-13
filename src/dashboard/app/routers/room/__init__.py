@@ -209,6 +209,7 @@ async def danmaku_admin_send(room_id: str, room_query: dict = Depends(room_with_
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     try:
+        danmaku.sender = 'admin'
         res = await http_client.post(f'{app_config.controller_url}/danmaku-alter/{room_id}',
                                      json=danmaku.dict(), params={'type': 'send'})
         res.raise_for_status()
