@@ -182,6 +182,7 @@ export default Vue.extend({
     if (this.wsDanmaku) {
       this.wsDanmaku.close()
     }
+    danmakuCache.length = 0
   }
 })
 </script>
