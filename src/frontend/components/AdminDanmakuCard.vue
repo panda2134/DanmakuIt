@@ -86,7 +86,7 @@ export default Vue.extend({
     async submit () {
       try {
         this.loading = true
-        await this.$api['/room/{room_id}/danmaku-update'].post(
+        await this.$api['/room/{room_id}/danmaku-admin'].post(
           {
             color: this.danmakuColor,
             size: this.fontSize + 'pt',

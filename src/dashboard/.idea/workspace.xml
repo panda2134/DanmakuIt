@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="feat(controller, dashboard): details in online consumers">
+    <list default="true" id="c9680298-32a5-458e-82f1-34901b08fa4d" name="Changes" comment="fix(controller, dashboard): logic of danmaku update / admin danmaku">
+      <change beforePath="$PROJECT_DIR$/../controller/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../controller/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/components/DanmakuWallInfoCard.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routers/room/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routers/room/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/openapi/openapi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/openapi/openapi.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/connect.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/connect.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/pages/my-room/_roomId/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/plugins/http.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/plugins/http.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test/ws_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../test/ws_client.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,6 +55,8 @@
       <workItem from="1639149943093" duration="13000" />
       <workItem from="1639149966901" duration="163000" />
       <workItem from="1639150272096" duration="789000" />
+      <workItem from="1639367514867" duration="993000" />
+      <workItem from="1639369198239" duration="29000" />
     </task>
     <task id="LOCAL-00001" summary="fix: wechat access token bgtasks">
       <created>1638862342966</created>
@@ -142,7 +142,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639150455044</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="fix(controller, dashboard): logic of danmaku update / admin danmaku">
+      <created>1639367865816</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1639367865816</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -173,6 +180,7 @@
     <MESSAGE value="docs(dashboard): change doc title to dashboard api" />
     <MESSAGE value="feat(dashboard): web origin config" />
     <MESSAGE value="feat(controller, dashboard): details in online consumers" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(controller, dashboard): details in online consumers" />
+    <MESSAGE value="fix(controller, dashboard): logic of danmaku update / admin danmaku" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(controller, dashboard): logic of danmaku update / admin danmaku" />
   </component>
 </project>

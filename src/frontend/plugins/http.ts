@@ -86,6 +86,9 @@ function getAPI ({ $axios, $config }: Context): APIType {
     },
     '/room/{room_id}/consumers': {
       get: (roomId: string) => $axios.$get(`/room/${roomId}/consumers`)
+    },
+    '/room/{room_id}/danmaku-admin': {
+      post: (danmaku: Danmaku, roomId: string) => $axios.$post(`/room/${roomId}/danmaku-admin`, danmaku)
     }
   }
 }

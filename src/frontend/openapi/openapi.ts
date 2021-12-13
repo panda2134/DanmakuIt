@@ -50,8 +50,12 @@ export interface paths {
     /** Fetch the user information of all subscribers.Returns room_id in JSON when the fetch process starts. */
     post: operations["fetch_subscribers_of_room_room__room_id__fetch_subscribers_post"];
   };
+  "/room/{room_id}/danmaku-admin": {
+    /** Send a danmaku message from admin. Sender in danmaku will always be overwritten to admin. */
+    post: operations["danmaku_admin_send_room__room_id__danmaku_admin_post"];
+  };
   "/room/{room_id}/danmaku-update": {
-    /** Update a danmaku message from users, or send a danmaku from admin. */
+    /** Update a danmaku message. */
     post: operations["danmaku_update_room__room_id__danmaku_update_post"];
   };
   "/room/{room_id}/consumers": {
@@ -402,7 +406,34 @@ export interface operations {
       };
     };
   };
-  /** Update a danmaku message from users, or send a danmaku from admin. */
+  /** Send a danmaku message from admin. Sender in danmaku will always be overwritten to admin. */
+  danmaku_admin_send_room__room_id__danmaku_admin_post: {
+    parameters: {
+      path: {
+        room_id: string;
+      };
+    };
+    responses: {
+      /** Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["DanmakuMessage"];
+        };
+      };
+      /** Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DanmakuMessage"];
+      };
+    };
+  };
+  /** Update a danmaku message. */
   danmaku_update_room__room_id__danmaku_update_post: {
     parameters: {
       path: {
