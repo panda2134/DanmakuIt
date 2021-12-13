@@ -239,7 +239,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~vuetify/src/styles/main.sass';
+/* @import '~vuetify/src/styles/main.sass'; */
 
 $danmaku-transition-time: 0.6s;
 
@@ -257,7 +257,8 @@ $danmaku-transition-time: 0.6s;
     font-size: 48px;
   }
   .danmaku--user {
-    color: map-get($indigo, 'lighten-1');
+    /* color: map-get($indigo, 'lighten-1'); */
+    color: #5c6bc0; /* hardcode to reduce bundle size */
   }
   .danmaku--content {
     font-family: "ZCOOL KuaiLe", sans-serif !important;
