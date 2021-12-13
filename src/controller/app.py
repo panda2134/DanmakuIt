@@ -338,10 +338,12 @@ async def setting_put(request: Request, room: str):
     return text('success')
 
 
-@app.post('/danmaku-admin/<room:str>')  # post danmaku
-async def danmaku_admin_post(request: Request, room: str):
+@app.post('/danmaku-alter/<room:str>')  # post danmaku
+async def danmaku_alter_post(request: Request, room: str):
     danmaku: Mapping[str, str] = request.json
-    content = b'\x00\x00\x00' if danmaku.get('sender', '').startswith('admin') else b'\x00\x00\x01'
+    content = b'\x00\x00\x00'\
+        if request.get_args().get('type', 'update') == 'send'\
+        else b'\x00\x00\x01'
     get_danmaku_producer(room).send_async(
         content=content,
         properties=danmaku,
@@ -361,11 +363,14 @@ success = os.getenv('WECHAT_DANMAKU_REPLY_SUCCESS', '收到你的消息啦，之
 wechat_token_length = int(os.getenv('WECHAT_TOKEN_LEN', '12'))
 wechat_token_salt = os.getenv('WECHAT_TOKEN_SALT').encode()
 
+
 def readable_sha256(binary: bytes, readable_char_table=bytes.maketrans(b'l1I0O+/=', b'LLLooXYZ')) -> str:
     return b2a_base64(sha256(binary).digest(), newline=False).translate(readable_char_table).decode()
 
+
 def get_token(room: str):
     return readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]
+
 
 @app.post('/port/<room:str>')  # wechat send danmaku
 async def port_post(request: Request, room: str):

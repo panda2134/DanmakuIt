@@ -202,14 +202,30 @@ async def fetch_subscribers_of_room(room_id: str, room_query: dict = Depends(roo
                             detail=f'Cannot start fetching subscribers.')
 
 
+@router.post('/{room_id}/danmaku-admin', response_model=DanmakuMessage,
+             description='Send a danmaku message from admin. Sender in danmaku will always be overwritten to admin.')
+async def danmaku_admin_send(room_id: str, room_query: dict = Depends(room_with_auth),
+                         danmaku: DanmakuMessage = Body(...)):
+    if not await get_db()['room'].count_documents(room_query, limit=1):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
+    try:
+        res = await http_client.post(f'{app_config.controller_url}/danmaku-alter/{room_id}',
+                                     json=danmaku.dict(), params={'type': 'send'})
+        res.raise_for_status()
+    except HTTPError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f'Cannot send admin danmaku.')
+    return danmaku
+
+
 @router.post('/{room_id}/danmaku-update', response_model=DanmakuMessage,
-             description='Update a danmaku message from users, or send a danmaku from admin.')
+             description='Update a danmaku message.')
 async def danmaku_update(room_id: str, room_query: dict = Depends(room_with_auth),
                          danmaku: DanmakuMessage = Body(...)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     try:
-        res = await http_client.post(f'{app_config.controller_url}/danmaku-admin/{room_id}',
+        res = await http_client.post(f'{app_config.controller_url}/danmaku-alter/{room_id}',
                                      json=danmaku.dict())
         res.raise_for_status()
     except HTTPError:
