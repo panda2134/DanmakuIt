@@ -341,7 +341,7 @@ async def setting_put(request: Request, room: str):
 @app.post('/danmaku-alter/<room:str>')  # post danmaku
 async def danmaku_alter_post(request: Request, room: str):
     danmaku: Mapping[str, str] = request.json
-    req_type = request.get_args.get('type', 'update')
+    req_type = request.get_args().get('type', 'update')
     if req_type != 'update' and req_type != 'send':
         return text('bad request', status=400)
     content = b'\x00\x00\x00' if req_type == 'send' else b'\x00\x00\x01'
