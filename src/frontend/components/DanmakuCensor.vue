@@ -22,6 +22,7 @@
         :headers="headers"
         :items="danmakuList"
         :search="search"
+        :footer-props="{ showFirstLastPage: true }"
         item-key="id"
       >
         <template v-slot:item.id="{ item }">
