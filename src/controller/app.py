@@ -187,6 +187,7 @@ async def room_post(request: Request, room: str):
     if not resp.is_success:
         return text(f'user topic grant permission error: {resp.status_code}', status=500)
 
+    room_exist_cache.add(room)
     await redis.publish('room_exist', f'{room}:1')
 
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
@@ -214,6 +215,9 @@ async def room_delete(request: Request, room: str):
     if not resp.is_success:
         return text(f'user topic set retention error: {resp.status_code}', status=500)
     
+    room_exist_cache.discard(room)
+    room_enable_cache.discard(room)
+    user_cache.pop(room, None)
     await redis.publish('room_enable', f'{room}:0')
     await redis.publish('room_exist', f'{room}:0')
     return text('success')
@@ -253,8 +257,8 @@ async def fetch_users(room: str, users: Sequence[str]):
             callback=lambda *_: None,
             properties=data
         )
-        redis.publish('room_user', f'{room}:{data["id"]}')
         user_cache[room].add(data['id'])
+        await redis.publish('room_user', f'{room}:{data["id"]}')
     return True
 
 
@@ -295,8 +299,9 @@ async def feed_post(request: Request, room: str):
 
 @app.put('/token/<room:str>')  # replace wechat access token
 async def token_put(request: Request, room: str):
-    binary: bytes = request.body
-    await redis.publish('access_token', f'{room}:{binary.decode()}')
+    token = str(request.body, 'utf-8')
+    token_cache[room] = token
+    await redis.publish('access_token', f'{room}:{token}')
     return text('success')
 
 async def resume_user_cache(room: str):
@@ -313,6 +318,7 @@ async def resume_user_cache(room: str):
         try:
             message = reader.read_next(timeout_millis=3)
             data: Mapping[str, str] = message.properties()
+            user_cache[room].add(data['id'])
             await redis.publish('room_user', f'{room}:{data["id"]}')
         except:
             break
@@ -325,11 +331,13 @@ async def setting_put(request: Request, room: str):
         if mode is None:
             return text('room not found', status=404)
         if mode == 'resume':
+            room_exist_cache.add(room)
             await redis.publish('room_exist', f'{room}:1')
             await resume_user_cache(room)
 
     state: MutableMapping = jsonlib.loads(request.body)
     enable = int(state['danmaku_enabled'])
+    (room_enable_cache.add if enable else room_enable_cache.discard)(room)
     await redis.publish('room_enable', f'{room}:{enable}')
     del state['danmaku_enabled']
     get_state_update_producer().send_async(
