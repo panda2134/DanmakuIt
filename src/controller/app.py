@@ -5,6 +5,7 @@ import json as jsonlib
 from xml.etree import ElementTree
 from time import time
 import os
+from collections import defaultdict
 
 from typing import Any, Callable, Mapping, MutableMapping, MutableSet, Optional, Sequence, Union
 
@@ -33,7 +34,7 @@ redis: aioredis.Redis = aioredis.from_url('redis://redis:6379/0', encoding="utf-
 token_channel = redis.pubsub()
 token_cache: MutableMapping[str, str] = {}
 user_channel = redis.pubsub()
-user_cache: MutableMapping[str, MutableSet[str]] = {}
+user_cache: MutableMapping[str, MutableSet[str]] = defaultdict(set)
 room_exist_channel = redis.pubsub()
 room_exist_cache: MutableSet[str] = set()
 room_enable_channel = redis.pubsub()
@@ -105,8 +106,6 @@ async def setup(*args, **kwargs):
     sync_worker(token_channel, 'access_token', sync_token_cache)
 
     def sync_user_cache(key: str, value: str):
-        if key not in user_cache:
-            user_cache[key] = set()
         user_cache[key].add(value)
 
     sync_worker(user_channel, 'room_user', sync_user_cache)
@@ -255,6 +254,7 @@ async def fetch_users(room: str, users: Sequence[str]):
             properties=data
         )
         redis.publish('room_user', f'{room}:{data["id"]}')
+        user_cache[room].add(data['id'])
     return True
 
 
