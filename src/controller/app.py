@@ -237,7 +237,8 @@ async def fetch_users(room: str, users: Sequence[str]):
         await asyncio.sleep(2.0)
 
     resp_obj: Mapping[str, Any] = resp.json()
-    if 'errorcode' in resp_obj:
+    if 'errcode' in resp_obj:
+        print('Error retrieving user info list')
         return False
     user_info_list: Sequence[Mapping[str, Union[str, Any]]] = resp_obj['user_info_list']
     data_list = [
