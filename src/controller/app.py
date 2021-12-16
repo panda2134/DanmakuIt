@@ -84,17 +84,31 @@ def get_user_producer(room: str):
         )
     return user_producers[room]
 
+async def succeed_subscription(pubsub: PubSub, channel: str):
+    while True:
+        try:
+            return await pubsub.subscribe(channel)
+        except aioredis.ConnectionError:
+            await asyncio.sleep(1.0)
 
-def sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
+async def get_message(pubsub: PubSub):
+    while True:
+        try:
+            await pubsub.connection.connect() # try reconnect, immediate return when connected
+            response = await pubsub.parse_response(block=True)
+            message = pubsub.handle_message(response, ignore_subscribe_messages=True)
+            if message is not None:
+                return message
+        except aioredis.ConnectionError:
+            await asyncio.sleep(1.0) # TODO: may lose cache consistency during reconnection
+
+async def start_sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, str], None]):
+    await succeed_subscription(pubsub, channel) # block until successfully subscribe
     async def wrapper():
-        await pubsub.subscribe(channel)
-        while pubsub.subscribed:
-            message = pubsub.handle_message(await pubsub.parse_response(block=True), ignore_subscribe_messages=True)
-            if message is None:
-                continue
+        while True:
+            message = await get_message(pubsub)
             data: str = message['data']
             func(*data.split(':', maxsplit=1))
-
     app.add_task(wrapper())
 
 
@@ -103,12 +117,12 @@ async def setup(*args, **kwargs):
     def sync_token_cache(key: str, value: str):
         token_cache[key] = value
 
-    sync_worker(token_channel, 'access_token', sync_token_cache)
+    await start_sync_worker(token_channel, 'access_token', sync_token_cache) # block until setup succeed
 
     def sync_user_cache(key: str, value: str):
         user_cache[key].add(value)
 
-    sync_worker(user_channel, 'room_user', sync_user_cache)
+    await start_sync_worker(user_channel, 'room_user', sync_user_cache)
 
     def sync_set_cache(set_cache: MutableSet):
         def sync(key: str, value: str):
@@ -119,8 +133,8 @@ async def setup(*args, **kwargs):
 
         return sync
 
-    sync_worker(room_exist_channel, 'room_exist', sync_set_cache(room_exist_cache))
-    sync_worker(room_enable_channel, 'room_enable', sync_set_cache(room_enable_cache))
+    await start_sync_worker(room_exist_channel, 'room_exist', sync_set_cache(room_exist_cache))
+    await start_sync_worker(room_enable_channel, 'room_enable', sync_set_cache(room_enable_cache))
 
 
 @app.after_server_stop
@@ -333,7 +347,7 @@ async def setting_put(request: Request, room: str):
         if mode == 'resume':
             room_exist_cache.add(room)
             await redis.publish('room_exist', f'{room}:1')
-            await resume_user_cache(room)
+            await resume_user_cache(room) # can take long time
 
     state: MutableMapping = jsonlib.loads(request.body)
     enable = int(state['danmaku_enabled'])
