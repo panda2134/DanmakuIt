@@ -8,6 +8,8 @@ services:
     entrypoint: ['bash', 'controller_entrypoint.sh']
     env_file:
       - token.env
+    environment:
+      WAIT_HOSTS: redis:6379
     volumes:
       - ./private_key:/private_key
       - ./public_key:/public_key
@@ -15,6 +17,7 @@ services:
       - ./src/controller/app.py:/workspace/app.py
       - ./src/controller/keys_create.py:/workspace/keys_create.py
       - ./docker/entrypoint/controller_entrypoint.sh:/workspace/controller_entrypoint.sh
+      - ./docker/entrypoint/:/entrypoint/  # for cross-platform wait
     expose: # nop, documentation only
       - "8000"
     depends_on:
@@ -57,9 +60,11 @@ services:
       - token.env
     environment:
       DEBUG: 1
+      WAIT_HOSTS: redis:6379
     volumes:
       - ./src/dashboard:/workspace/dashboard
       - ./docker/entrypoint/dashboard_entrypoint.sh:/workspace/dashboard_entrypoint.sh
+      - ./docker/entrypoint/:/entrypoint/  # for cross-platform wait
     depends_on:
       - mongo
       - redis
