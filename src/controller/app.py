@@ -134,7 +134,6 @@ async def setup(*args, **kwargs):
                 return set_cache.discard(key)
             if value == '1':
                 return set_cache.add(key)
-
         return sync
 
     await start_sync_worker(room_exist_channel, 'room_exist', sync_set_cache(room_exist_cache))
@@ -205,7 +204,6 @@ async def room_post(request: Request, room: str):
     if not resp.is_success:
         return text(f'user topic grant permission error: {resp.status_code}', status=500)
 
-    room_exist_cache.add(room)
     await redis.publish('room_exist', f'{room}:1')
 
     token = jwt.encode({'sub': f'display_{room}'}, private_key, algorithm='RS256', headers={'typ': None})
@@ -232,10 +230,7 @@ async def room_delete(request: Request, room: str):
     resp = await http_client.post(f'{prefix}/user_{room}/retention', json=no_retention)
     if not resp.is_success:
         return text(f'user topic set retention error: {resp.status_code}', status=500)
-    
-    room_exist_cache.discard(room)
-    room_enable_cache.discard(room)
-    remove_key(user_cache, room)
+
     await redis.publish('user_cache', f'remove:{room}')
     await redis.publish('room_enable', f'{room}:0')
     await redis.publish('room_exist', f'{room}:0')
@@ -276,7 +271,6 @@ async def fetch_users(room: str, users: Sequence[str]):
             callback=lambda *_: None,
             properties=data
         )
-        user_cache[room].add(data['id'])
         await redis.publish('room_user', f'{room}:{data["id"]}')
     return True
 
@@ -319,7 +313,6 @@ async def feed_post(request: Request, room: str):
 @app.put('/token/<room:str>')  # replace wechat access token
 async def token_put(request: Request, room: str):
     token = str(request.body, 'utf-8')
-    token_cache[room] = token
     await redis.publish('access_token', f'{room}:{token}')
     return text('success')
 
@@ -337,7 +330,6 @@ async def resume_user_cache(room: str):
         try:
             message = reader.read_next(timeout_millis=3)
             data: Mapping[str, str] = message.properties()
-            user_cache[room].add(data['id'])
             await redis.publish('room_user', f'{room}:{data["id"]}')
         except:
             break
@@ -346,18 +338,11 @@ async def resume_user_cache(room: str):
 @app.put('/setting/<room:str>')  # replace room setting
 async def setting_put(request: Request, room: str):
     mode: Optional[str] = request.get_args().get('mode')
-    if room not in room_exist_cache:
-        if mode is None:
-            return text('room not found', status=404)
-        if mode == 'resume':
-            room_exist_cache.add(room)
-            await redis.publish('room_exist', f'{room}:1')
-            await resume_user_cache(room) # can take long time
+    if room not in room_exist_cache and mode is None:
+        return text('room not found', status=404)
 
     state: MutableMapping = jsonlib.loads(request.body)
     enable = int(state['danmaku_enabled'])
-    (room_enable_cache.add if enable else room_enable_cache.discard)(room)
-    await redis.publish('room_enable', f'{room}:{enable}')
     del state['danmaku_enabled']
     # we don't know whether pulsar client is thread safe
     # cannot use to_thread(py3.9) or run_in_executor to simplify logic
@@ -370,10 +355,17 @@ async def setting_put(request: Request, room: str):
         content=jsonlib.dumps([room, jsonlib.dumps(state)]).encode(),
         callback=lambda *_: None
     )
-    while not ack_reader.has_message_available(): # what about concurrent state update's ack?
-        await asyncio.sleep(0.3) # do we need timeout?
-    ack_reader.close()
-    return text('success')
+    for _ in range(5):
+        await asyncio.sleep(0.2)
+        if ack_reader.has_message_available(): # what about concurrent state update's ack?
+            print(ack_reader.read_next().data())
+            ack_reader.close()
+            await redis.publish('room_enable', f'{room}:{enable}')
+            if mode == 'resume':
+                await redis.publish('room_exist', f'{room}:1')
+                await resume_user_cache(room) # can take long time
+            return text('success')
+    return text('cannot update state', status=503)
 
 
 @app.post('/danmaku-alter/<room:str>')  # post danmaku

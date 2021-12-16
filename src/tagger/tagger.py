@@ -120,6 +120,7 @@ class TaggingFunction(Function):
     def process(self, input: bytes, context: Context):
         if context.get_current_message_topic_name() == 'persistent://public/default/state':
             room, state_str = json.loads(input.decode())
+            print('get state', room, state_str)
             room_state: Mapping[str, Any] = json.loads(state_str)
             self.state_cache[room] = {key: room_state[key] for key in ('remote_censor', 'user_danmaku_colors')}
             self.re_cache[room] = [re.compile('.*?'.join(list(keyword))) for keyword in room_state['keyword_blacklist']]
