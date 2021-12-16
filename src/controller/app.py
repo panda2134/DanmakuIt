@@ -325,7 +325,7 @@ async def resume_user_cache(room: str):
             )
             break
         except:
-            await asyncio.sleep(30.0)
+            await asyncio.sleep(10.0)
     while True:
         try:
             message = reader.read_next(timeout_millis=3)
@@ -342,30 +342,18 @@ async def setting_put(request: Request, room: str):
         return text('room not found', status=404)
 
     state: MutableMapping = jsonlib.loads(request.body)
-    enable = int(state['danmaku_enabled'])
-    del state['danmaku_enabled']
-    # we don't know whether pulsar client is thread safe
-    # cannot use to_thread(py3.9) or run_in_executor to simplify logic
-    # just poll ack
-    ack_reader = pulsar_client.create_reader(
-        f'persistent://public/default/ack_{room}',
-        start_message_id=pulsar.MessageId.latest
-    )
+    enable = int(state.pop('danmaku_enabled'))
+
     get_state_update_producer().send_async(
         content=jsonlib.dumps([room, jsonlib.dumps(state)]).encode(),
         callback=lambda *_: None
     )
-    for _ in range(5):
-        await asyncio.sleep(0.2)
-        if ack_reader.has_message_available(): # what about concurrent state update's ack?
-            print(ack_reader.read_next().data())
-            ack_reader.close()
-            await redis.publish('room_enable', f'{room}:{enable}')
-            if mode == 'resume':
-                await redis.publish('room_exist', f'{room}:1')
-                await resume_user_cache(room) # can take long time
-            return text('success')
-    return text('cannot update state', status=503)
+
+    await redis.publish('room_enable', f'{room}:{enable}')
+    if mode == 'resume':
+        await redis.publish('room_exist', f'{room}:1')
+        await resume_user_cache(room) # can take long time
+    return text('success')
 
 
 @app.post('/danmaku-alter/<room:str>')  # post danmaku
