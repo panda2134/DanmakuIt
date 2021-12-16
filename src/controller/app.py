@@ -111,6 +111,8 @@ async def start_sync_worker(pubsub: PubSub, channel: str, func: Callable[[str, s
             func(*data.split(':', maxsplit=1))
     app.add_task(wrapper())
 
+def remove_key(mapping: MutableMapping[Any, Any], key: Any):
+    mapping.pop(key, None)
 
 @app.before_server_start
 async def setup(*args, **kwargs):
@@ -120,6 +122,8 @@ async def setup(*args, **kwargs):
     await start_sync_worker(token_channel, 'access_token', sync_token_cache) # block until setup succeed
 
     def sync_user_cache(key: str, value: str):
+        if key == 'remove':
+            return remove_key(user_cache, value)
         user_cache[key].add(value)
 
     await start_sync_worker(user_channel, 'room_user', sync_user_cache)
@@ -175,11 +179,11 @@ async def get_consumers(request: Request, room: str):
 async def room_post(request: Request, room: str):
     prefix = 'http://pulsar:8080/admin/v2/persistent/public/default'
     resp = await http_client.put(f'{prefix}/{room}')
-    if resp.status_code not in {204, 409}:
+    if not resp.is_success: # 409 when topic duplicate: reject reuse room
         return text(f'create danmaku topic error: {resp.status_code}', status=500)
 
     resp = await http_client.put(f'{prefix}/user_{room}')
-    if resp.status_code not in {204, 409}:
+    if not resp.is_success:
         # It is impossible to do atomic transaction through stateless RESTful API
         return text(f'create user topic error: {resp.status_code}', status=500)
 
@@ -231,7 +235,8 @@ async def room_delete(request: Request, room: str):
     
     room_exist_cache.discard(room)
     room_enable_cache.discard(room)
-    user_cache.pop(room, None)
+    remove_key(user_cache, room)
+    await redis.publish('user_cache', f'remove:{room}')
     await redis.publish('room_enable', f'{room}:0')
     await redis.publish('room_exist', f'{room}:0')
     return text('success')
