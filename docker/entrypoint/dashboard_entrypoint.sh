@@ -10,7 +10,7 @@ _term() {
 }
 trap _term SIGTERM
 /entrypoint/wait_`uname -m`
-if [[ $? -ne 0 ]]; then
+if [ $? -ne 0 ]; then
 	exit 1
 fi
 echo "Redis is up!"
