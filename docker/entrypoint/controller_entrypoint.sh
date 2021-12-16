@@ -7,7 +7,7 @@ else
     python keys_create.py
 fi
 /entrypoint/wait_`uname -m`
-if [[ $? -ne 0 ]];
+if [ $? -ne 0 ]; then
 	exit 1
 fi
 echo "Redis is up!"
