@@ -123,7 +123,11 @@ class TaggingFunction(Function):
             room_state: Mapping[str, Any] = json.loads(state_str)
             self.state_cache[room] = {key: room_state[key] for key in ('remote_censor', 'user_danmaku_colors')}
             self.re_cache[room] = [re.compile('.*?'.join(list(keyword))) for keyword in room_state['keyword_blacklist']]
-            return
+            return context.publish(
+                topic_name=f'persistent://public/default/ack_{room}',
+                message=b'\x00',
+                serde_class_name='tagger.BytesIdentity',
+            )
 
         # WARNING: "current message" of context will be updated by main thread
         # should not get message info from context object in async functions

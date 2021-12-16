@@ -359,10 +359,20 @@ async def setting_put(request: Request, room: str):
     (room_enable_cache.add if enable else room_enable_cache.discard)(room)
     await redis.publish('room_enable', f'{room}:{enable}')
     del state['danmaku_enabled']
+    # we don't know whether pulsar client is thread safe
+    # cannot use to_thread(py3.9) or run_in_executor to simplify logic
+    # just poll ack
+    ack_reader = pulsar_client.create_reader(
+        f'persistent://public/default/ack_{room}',
+        start_message_id=pulsar.MessageId.latest
+    )
     get_state_update_producer().send_async(
         content=jsonlib.dumps([room, jsonlib.dumps(state)]).encode(),
         callback=lambda *_: None
     )
+    while not ack_reader.has_message_available(): # what about concurrent state update's ack?
+        await asyncio.sleep(0.3) # do we need timeout?
+    ack_reader.close()
     return text('success')
 
 
