@@ -22,7 +22,7 @@ app = FastAPI(
     description=description,
     root_path="/api/v1",
     servers=[
-        {"url": f"https://{app_config.origin}/api/v1", "description": "Development server"},
+        {"url": f"{app_config.origin}/api/v1", "description": "Development server"},
     ],
 )
 

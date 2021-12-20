@@ -58,6 +58,7 @@ services:
     entrypoint: ['bash', 'dashboard_entrypoint.sh']
     env_file:
       - token.env
+      - site.env
     environment:
       DEBUG: 1
       WAIT_HOSTS: redis:6379
@@ -71,9 +72,8 @@ services:
 
   mongo:
     image: mongo:5.0.4
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password # todo: add into env files
+    env_file:
+      - site.env
     volumes:
       - mongodata:/data/db
     expose: # nop, documentation only
@@ -83,6 +83,8 @@ services:
     image: redis:6.2.6-alpine3.15
 
   nginx:
+    env_file:
+      - misc.env
     build:
       context: .
       dockerfile: docker/build/nginx/Dockerfile
