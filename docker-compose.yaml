@@ -83,8 +83,6 @@ services:
     image: redis:6.2.6-alpine3.15
 
   nginx:
-    env_file:
-      - misc.env
     build:
       context: .
       dockerfile: docker/build/nginx/Dockerfile
