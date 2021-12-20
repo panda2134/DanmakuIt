@@ -29,7 +29,7 @@
     "vuetify-toast-snackbar": "^0.6.1"
   },
   "devDependencies": {
-    "@ava/babel": "^1.0.1",
+    "@ava/babel": "^2.0.0",
     "@babel/eslint-parser": "^7.14.7",
     "@iconify/vue2": "^1.1.1",
     "@mdi/font": "^6.5.95",
