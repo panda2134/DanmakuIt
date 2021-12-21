@@ -2,6 +2,15 @@
   "cookies": [],
   "origins": [
     {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "token",
+          "value": "@E2E_TOKEN@"
+        }
+      ]
+    },
+    {
       "origin": "https://danmakuit.panda2134.site",
       "localStorage": [
         {
