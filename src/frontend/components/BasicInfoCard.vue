@@ -9,50 +9,51 @@
         <v-checkbox v-model="danmakuEnabled" label="允许弹幕" />
         <label>
           用户弹幕颜色
-          <v-text-field readonly single-line disabled class="elevation-0" rows="3">
-            <template #prepend-inner>
-              <div class="d-flex flex-wrap">
-                <v-chip
-                  v-for="color in colors"
-                  :key="color"
-                  :color="color"
-                  class="mb-1 mr-2"
-                  close
-                  dark
-                  @click:close="removeColor(color)"
-                >
-                  {{ color }}
-                </v-chip>
-              </div>
-            </template>
-            <template #append>
-              <v-menu v-model="showColorDialog" max-width="398" left :close-on-content-click="false">
-                <template #activator="{ on }">
-                  <v-btn icon v-on="on">
-                    <v-icon>
-                      mdi-plus
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <v-card>
-                  <v-card-title>
-                    选择一种弹幕颜色
-                  </v-card-title>
-                  <v-card-text>
-                    <v-color-picker show-swatches width="350" :value="newColor" @update:color="updateNewColor" />
-                    <span v-show="!isNewColorValid" class="error--text">颜色重复。</span>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn text color="primary" :disabled="!isNewColorValid" @click="addColor">
-                      添加
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-menu>
-            </template>
-          </v-text-field>
         </label>
+        <!--v-chip 不能放在label内，否则点击判定会出现故障！！！-->
+        <v-text-field readonly single-line disabled class="elevation-0" rows="3">
+          <template #prepend-inner>
+            <div class="d-flex flex-wrap">
+              <v-chip
+                v-for="color in colors"
+                :key="color"
+                :color="color"
+                class="mb-1 mr-2"
+                dark
+                close
+                @click:close="removeColor(color)"
+              >
+                {{ color }}
+              </v-chip>
+            </div>
+          </template>
+          <template #append>
+            <v-menu v-model="showColorDialog" max-width="398" left :close-on-content-click="false">
+              <template #activator="{ on }">
+                <v-btn icon v-on="on">
+                  <v-icon>
+                    mdi-plus
+                  </v-icon>
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  选择一种弹幕颜色
+                </v-card-title>
+                <v-card-text>
+                  <v-color-picker show-swatches width="350" :value="newColor" @update:color="updateNewColor" />
+                  <span v-show="!isNewColorValid" class="error--text">颜色重复。</span>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer />
+                  <v-btn text color="primary" :disabled="!isNewColorValid" @click="addColor">
+                    添加
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-menu>
+          </template>
+        </v-text-field>
       </v-form>
     </v-card-text>
     <v-divider />
@@ -99,7 +100,7 @@ export default Vue.extend({
       basicLoading: false,
       name: this.initialName,
       danmakuEnabled: this.initialDanmakuEnabled,
-      colors: this.initialColors as string[],
+      colors: Array.from(this.initialColors) as string[],
       newColor: '',
       showColorDialog: false
     }
