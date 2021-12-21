@@ -1,6 +1,5 @@
 from typing import Optional, List, Dict
 from urllib.parse import quote_from_bytes
-from dashboard.app.models import user
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ValidationError
