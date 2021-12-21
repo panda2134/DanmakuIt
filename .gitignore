@@ -4,3 +4,4 @@ public_key
 token
 debug
 *.pyc
+*.secrets

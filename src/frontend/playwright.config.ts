@@ -7,7 +7,12 @@ const config: PlaywrightTestConfig = {
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI
   },
-  reporter: process.env.CI ? 'github' : 'list'
+  reporter: process.env.CI ? 'github' : 'list',
+  retries: 3,
+  use: {
+    trace: 'on',
+    screenshot: 'on'
+  }
 }
 
 export default config

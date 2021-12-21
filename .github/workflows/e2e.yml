@@ -1,0 +1,39 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Run e2e tests
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  e2e:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'yarn'
+        cache-dependency-path: ./src/frontend/yarn.lock
+    - name: Restore cached browser dependency for playwright
+      uses: actions/cache@v2
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-browsers
+    - name: Install dependencies
+      working-directory: ./src/frontend
+      run: |
+        yarn install --frozen-lockfile
+        yarn playwright install
+    - name: Run e2e tests
+      working-directory: ./src/frontend
+      run: yarn test:e2e
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      working-directory: ./src/frontend
+      with:
+        name: test-results

@@ -91,3 +91,5 @@ sw.*
 
 # Playwright local storage & cookies
 /auth.json
+/test-results/**/*
+trace.zip
