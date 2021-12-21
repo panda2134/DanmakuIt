@@ -12,13 +12,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Write secret into auth.json
+      working-directory: ./src/frontend
+      env:
+        E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
+      run: sed "s/@E2E_TOKEN@/123123/g" auth.example.json > auth.json 
+    - name: Use Node.js 16.x in Act
+      if: ${{ env.ACT }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
     - name: Use Node.js 16.x
       uses: actions/setup-node@v2
+      if: ${{ !env.ACT }}
       with:
         node-version: 16.x
         cache: 'yarn'
         cache-dependency-path: ./src/frontend/yarn.lock
     - name: Restore cached browser dependency for playwright
+      if: ${{ !env.ACT }}
       uses: actions/cache@v2
       id: playwright-cache
       with:
@@ -29,6 +41,7 @@ jobs:
       run: |
         yarn install --frozen-lockfile
         yarn playwright install
+        yarn playwright install-deps
     - name: Run e2e tests
       working-directory: ./src/frontend
       run: yarn test:e2e
