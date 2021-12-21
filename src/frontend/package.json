@@ -11,7 +11,7 @@
     "lint": "yarn lint:js",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "cross-env TEST=unit ava ./test/specs/**/*",
-    "test:e2e": "nuxt build && cross-env TEST=e2e playwright test ./test/e2e/**/*",
+    "test:e2e": "cross-env TEST=e2e playwright test ./test/e2e/**/*",
     "openapi": "yarn openapi-typescript https://danmakuit.panda2134.site/api/v1/openapi.json --output openapi/openapi.ts"
   },
   "dependencies": {
