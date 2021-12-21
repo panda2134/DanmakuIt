@@ -34,7 +34,7 @@ class SocialLoginSettings(BaseSettings):
     jwt_algorithm: str = Field('HS256')
     jwt_token_age: datetime.timedelta = Field(datetime.timedelta(days=14))
     jwt_redirect_path: str = '/oauth-token'  # jwt will be appended as query string
-
+    allow_registration: bool = Field(True, env='ALLOW_REGISTRATION')
 
 class RoomSettings(BaseSettings):
     room_passcode_length: int = Field(6, ge=6, le=16, env='ROOM_PASSCODE_LEN')

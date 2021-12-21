@@ -1,12 +1,13 @@
 from typing import Optional, List, Dict
 from urllib.parse import quote_from_bytes
+from dashboard.app.models import user
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ValidationError
 import httpx
 from app.config import app_config
 from app.models.user import User
-from app.routers.user.social_login.response import TokenResponse
+from app.routers.user.social_login.util import TokenResponse, create_or_update_user
 from app.utils.jwt import create_jwt
 
 from app.db import get_db
@@ -89,9 +90,5 @@ async def connect_to_wechat(code: str):
     user_model = User(uid=f'wechat:{user_info.unionid}',
                       username=user_info.nickname,
                       avatar=avatar)
-    await get_db()['user'].update_one(
-        dict(connect_uid=user_model.uid),
-        {'$set': user_model.dict()},
-        upsert=True
-    )
+    await create_or_update_user(user_model)
     return TokenResponse(create_jwt(user_model))

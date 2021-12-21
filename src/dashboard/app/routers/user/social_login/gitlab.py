@@ -8,7 +8,7 @@ from app.db import get_db
 from .oauth import oauth
 from app.config import app_config
 from app.models.user import User
-from app.routers.user.social_login.response import TokenResponse
+from app.routers.user.social_login.util import TokenResponse, create_or_update_user
 from app.utils.jwt import create_jwt
 
 router = APIRouter()
@@ -48,11 +48,7 @@ async def get_user_from_gitlab_api(request: Request, client_name: str = 'gitlab'
     user_model = User(uid=f'{client_name}:{user.id}',
                       username=user.username,
                       avatar=user.avatar_url)
-    await get_db()['user'].update_one(
-        dict(connect_uid=user_model.uid),
-        {'$set': user_model.dict()},
-        upsert=True
-    )
+    await create_or_update_user(user_model)
     return user_model
 
 
