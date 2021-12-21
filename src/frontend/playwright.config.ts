@@ -1,4 +1,4 @@
-import { PlaywrightTestConfig } from '@playwright/test';
+import { PlaywrightTestConfig } from '@playwright/test'
 
 const config: PlaywrightTestConfig = {
   webServer: {
@@ -8,7 +8,7 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI
   },
   reporter: process.env.CI ? 'github' : 'list',
-  retries: 1,
+  retries: process.env.CI ? 3 : 0,
   use: {
     trace: 'on',
     screenshot: 'on'
