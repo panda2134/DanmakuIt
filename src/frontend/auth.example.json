@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://danmakuit.panda2134.site",
+      "localStorage": [
+        {
+          "name": "token",
+          "value": "@E2E_TOKEN@"
+        }
+      ]
+    }
+  ]
+}
