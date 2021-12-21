@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@ava/babel": "^2.0.0",
-    "@babel/eslint-parser": "^7.14.7",
+    "@babel/eslint-parser": "^7.16.5",
     "@iconify/vue2": "^1.1.1",
     "@mdi/font": "^6.5.95",
     "@nuxt/types": "^2.15.7",
