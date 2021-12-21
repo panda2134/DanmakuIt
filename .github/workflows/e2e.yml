@@ -16,7 +16,7 @@ jobs:
       working-directory: ./src/frontend
       env:
         E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
-      run: sed "s/@E2E_TOKEN@/123123/g" auth.example.json > auth.json 
+      run: sed "s/@E2E_TOKEN@/${E2E_TOKEN}/g" auth.example.json > auth.json 
     - name: Use Node.js 16.x in Act
       if: ${{ env.ACT }}
       uses: actions/setup-node@v2
