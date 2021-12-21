@@ -1,0 +1,50 @@
+name: Run e2e tests
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  e2e:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Write secret into auth.json
+      working-directory: ./src/frontend
+      env:
+        E2E_TOKEN: ${{ secrets.E2E_TOKEN }}
+      run: sed "s/@E2E_TOKEN@/${E2E_TOKEN}/g" auth.example.json > auth.json 
+    - name: Use Node.js 16.x in Act
+      if: ${{ env.ACT }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+    - name: Use Node.js 16.x
+      uses: actions/setup-node@v2
+      if: ${{ !env.ACT }}
+      with:
+        node-version: 16.x
+        cache: 'yarn'
+        cache-dependency-path: ./src/frontend/yarn.lock
+    - name: Restore cached browser dependency for playwright
+      if: ${{ !env.ACT }}
+      uses: actions/cache@v2
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-browsers
+    - name: Install dependencies
+      working-directory: ./src/frontend
+      run: |
+        yarn install --frozen-lockfile
+        yarn playwright install
+        yarn playwright install-deps
+    - name: Run e2e tests
+      working-directory: ./src/frontend
+      run: yarn test:e2e
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: test-results
+        path: src/frontend/test-results

@@ -88,3 +88,8 @@ sw.*
 
 # Vim swap files
 *.swp
+
+# Playwright local storage & cookies
+/auth.json
+/test-results/**/*
+trace.zip
