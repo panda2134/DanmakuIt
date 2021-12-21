@@ -47,6 +47,7 @@ jobs:
       run: yarn test:e2e
     - name: Upload test results
       uses: actions/upload-artifact@v2
+      if: always()
       with:
         name: test-results
-        path: src/frontend
+        path: src/frontend/test-results

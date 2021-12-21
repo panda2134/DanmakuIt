@@ -8,7 +8,7 @@ const config: PlaywrightTestConfig = {
     reuseExistingServer: !process.env.CI
   },
   reporter: process.env.CI ? 'github' : 'list',
-  retries: 3,
+  retries: 1,
   use: {
     trace: 'on',
     screenshot: 'on'

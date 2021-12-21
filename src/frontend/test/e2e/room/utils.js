@@ -13,7 +13,7 @@ async function createRoom (page, roomName) {
 
   try {
     // Click menu btn
-    await page.click('.v-speed-dial > button >> .mdi-menu');
+    await page.click('.v-speed-dial .mdi-menu');
   } catch (e) {
     // empty!
     await expect(page).toContainText(['什么都没有哦', '点击右下角，创建一个新房间'])
