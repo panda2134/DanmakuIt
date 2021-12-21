@@ -24,16 +24,15 @@
           @blur.prevent="addKeyword"
         >
           <template #prepend-inner>
-            <v-chip-group>
-              <v-chip
-                v-for="kwd in keywords"
-                :key="kwd"
-                close
-                @click:close="removeKeyword(kwd)"
-              >
-                {{ kwd }}
-              </v-chip>
-            </v-chip-group>
+            <v-chip
+              v-for="kwd in keywords"
+              :key="kwd"
+              close
+              class="mb-1 mr-2"
+              @click:close="removeKeyword(kwd)"
+            >
+              {{ kwd }}
+            </v-chip>
           </template>
         </v-text-field>
       </v-form>
@@ -84,7 +83,7 @@ export default Vue.extend({
       valid: true,
       loading: false,
       autoCensor: this.initialAutoCensor,
-      keywords: this.initialKeywords as string[],
+      keywords: Array.from(this.initialKeywords as string[]),
       newKeywordInput: ''
     }
   },
