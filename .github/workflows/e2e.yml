@@ -34,6 +34,6 @@ jobs:
       run: yarn test:e2e
     - name: Upload test results
       uses: actions/upload-artifact@v2
-      working-directory: ./src/frontend
       with:
         name: test-results
+        path: src/frontend
