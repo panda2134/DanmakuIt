@@ -82,22 +82,6 @@ interface CensorData {
 
 const danmakuCache: CensorItem[] = []
 
-function makeCensorItem (danmaku: Danmaku, publishTime: string, wsUserInfo: DanmakuUserInfoCacheClient | null) {
-  const userInfo = wsUserInfo?.getUserInfo(danmaku.sender)
-  if (!danmaku.id) {
-    return null
-  }
-  return {
-    id: danmaku.id,
-    time: new Date(publishTime),
-    avatar: danmaku.sender === 'admin' ? '/admin.png' : (userInfo?.headimgurl ?? ''),
-    username: danmaku.sender === 'admin' ? '管理员' : (userInfo?.nickname ?? danmaku.sender),
-    content: danmaku.content,
-    pass: danmaku.permission === '1',
-    originalData: danmaku
-  }
-}
-
 export default Vue.extend({
   name: 'DanmakuCensor',
   props: {
@@ -134,16 +118,45 @@ export default Vue.extend({
     )
     this.wsUserInfo = new DanmakuUserInfoCacheClient(this.roomId, room.pulsar_jwt, this.userInfoUpdate)
   },
+  mounted () {
+    // FIXME: use a more elegant method to handle the race condition
+    setInterval(() => {
+      this.updateAllUserInfo()
+    }, 1500)
+  },
   methods: {
-    userInfoUpdate: throttle(300, function (this: CensorData & {  }, ev: PulsarEvent<UserInfo>) {
-      console.log('!!user info update')
+    makeCensorItem (danmaku: Danmaku, publishTime: string) {
+      const userInfo = this.wsUserInfo?.getUserInfo(danmaku.sender)
+      if (!danmaku.id) {
+        return null
+      }
+
+      return {
+        id: danmaku.id,
+        time: new Date(publishTime),
+        avatar: danmaku.sender === 'admin' ? '/admin.png' : (userInfo?.headimgurl ?? ''),
+        username: danmaku.sender === 'admin' ? '管理员' : (userInfo?.nickname ?? danmaku.sender),
+        content: danmaku.content,
+        pass: danmaku.permission === '1',
+        originalData: danmaku
+      }
+    },
+    userInfoUpdate (ev: PulsarEvent<UserInfo>) {
       for (const x of this.danmakuList) {
-        console.log(x.originalData.sender, ev.properties.id)
-        if (x.originalData.sender === ev.properties.id) {
-          Object.assign(x, makeCensorItem(x.originalData, x.time.toISOString(), this.wsUserInfo))
+        if (x.originalData.sender === ev.properties.id && !x.avatar) {
+          Object.assign(x, this.makeCensorItem(x.originalData, x.time.toISOString()))
         }
       }
-    }),
+    },
+    updateAllUserInfo () {
+      if (!this.wsUserInfo) return
+      for (const x of this.danmakuList) {
+        const userInfo = this.wsUserInfo.getUserInfo(x.originalData.sender)
+        if (userInfo && !x.avatar) {
+          Object.assign(x, this.makeCensorItem(x.originalData, x.time.toISOString()))
+        }
+      }
+    },
     clearDanmakuCache: throttle(200, function (this: CensorData) {
       this.danmakuList.push(...danmakuCache)
       danmakuCache.length = 0
@@ -153,11 +166,10 @@ export default Vue.extend({
         return // update danmaku
       }
       const danmaku = ev.properties
-      if (!this.wsUserInfo) {
-        this.clearDanmakuCache()
+      if (!this.wsUserInfo) { // wait; update next time
         return
       }
-      const item = makeCensorItem(danmaku, ev.publishTime, this.wsUserInfo)
+      const item = this.makeCensorItem(danmaku, ev.publishTime)
       if (item) {
         danmakuCache.push(item)
       }
