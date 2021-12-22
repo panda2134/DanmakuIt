@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>弹幕一下</title>
+    <meta name="description" content="弹幕一下文档">
+    <link rel="stylesheet" href="/assets/style.0e90491c.css">
+    <link rel="modulepreload" href="/assets/Home.93f6475d.js">
+    <link rel="modulepreload" href="/assets/app.f396f5fb.js">
+    <link rel="modulepreload" href="/assets/guide_message_format.md.ef1bd78f.lean.js">
+    
+    <meta name="twitter:title" content="弹幕一下">
+    <meta property="og:title" content="弹幕一下">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="theme"><header class="nav-bar" data-v-40587210><div class="sidebar-button" data-v-40587210><svg class="icon" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z" class></path></svg></div><a class="nav-bar-title" href="/" aria-label="弹幕一下, back to home" data-v-40587210 data-v-7ac13a1e><!----> 弹幕一下</a><div class="flex-grow" data-v-40587210></div><div class="nav" data-v-40587210><!----></div><!--[--><!--]--></header><aside class="sidebar" data-v-17c48e2f><!----><!--[--><!--]--><!----><!--[--><!--]--></aside><div class="sidebar-mask"></div><main class="page" data-v-8fcebc32><div class="container" data-v-8fcebc32><!--[--><!--]--><div style="position:relative;" class="content" data-v-8fcebc32><div><p>弹幕接入点</p><p subscription="">/websocket/consumer/persistent/public/default/{room}/</p><p>pulsar指pulsar容器，在Docker外部访问使用localhost</p><p>弹幕消息格式</p><div class="language-python line-numbers-mode"><pre><code><span class="token punctuation">{</span>
+    <span class="token string">&#39;messageId&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;CBAQAiAAMAE=&#39;</span> <span class="token comment"># 仅用于ack</span>
+    <span class="token string">&#39;payload&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;AAAA&#39;</span><span class="token punctuation">,</span> <span class="token comment"># 新弹幕, AAAB表示弹幕更新</span>
+    <span class="token string">&#39;properties&#39;</span><span class="token punctuation">:</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&#39;content&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;{content}&#39;</span><span class="token punctuation">,</span>
+        <span class="token string">&#39;id&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;UMwXbJ7xE5xC4rJl8VZ8ZcUZ5n+qWs5I&#39;</span><span class="token punctuation">,</span> <span class="token comment"># base64随机ID，几乎不可能碰撞</span>
+        <span class="token string">&#39;sender&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;user@wechat:{wx_openid}&#39;</span><span class="token punctuation">,</span> <span class="token comment"># 管理员弹幕以admin:开头</span>
+        <span class="token string">&#39;permission&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;1&#39;</span><span class="token punctuation">,</span> <span class="token comment"># 字符串&#39;1&#39;表示审核通过，字符串&#39;0&#39;表示审核不通过</span>
+        <span class="token string">&#39;color&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;undefined&#39;</span><span class="token punctuation">,</span> <span class="token comment"># &#39;undefined&#39;由显示端决定, 或十六进制颜色码如&#39;FFFFFF&#39;</span>
+        <span class="token string">&#39;size&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;16pt&#39;</span><span class="token punctuation">,</span>
+        <span class="token string">&#39;pos&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;rightleft&#39;</span><span class="token punctuation">,</span> <span class="token comment"># &#39;top&#39;, &#39;bottom&#39;, &#39;rightleft&#39;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">&#39;publishTime&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;2021-11-21T10:56:25.798Z&#39;</span><span class="token punctuation">,</span>
+    <span class="token string">&#39;redeliveryCount&#39;</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre><div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br></div></div><p>用户信息接入点</p><p subscription="">/websocket/consumer/persistent/public/default/user_{room}/</p><p>用户信息消息格式</p><div class="language-python line-numbers-mode"><pre><code><span class="token punctuation">{</span>
+    <span class="token string">&#39;messageId&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;CBAQAiAAMAE=&#39;</span> <span class="token comment"># 仅用于ack</span>
+    <span class="token string">&#39;payload&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;AAAC&#39;</span><span class="token punctuation">,</span> <span class="token comment"># 表示为用户信息</span>
+    <span class="token string">&#39;properties&#39;</span><span class="token punctuation">:</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&#39;id&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;user@wechat:{wx_openid}&#39;</span><span class="token punctuation">,</span> <span class="token comment"># 管理员以admin:开头</span>
+        <span class="token string">&#39;nickname&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;微信昵称&#39;</span><span class="token punctuation">,</span>
+        <span class="token string">&#39;headimgurl&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;http://thirdwx.qlogo.cn/mmopen/{some_hash}/0&#39;</span> <span class="token comment"># 管理员为base64编码</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">&#39;publishTime&#39;</span><span class="token punctuation">:</span> <span class="token string">&#39;2021-11-21T10:56:25.798Z&#39;</span><span class="token punctuation">,</span>
+    <span class="token string">&#39;redeliveryCount&#39;</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre><div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br></div></div></div></div><footer class="page-footer" data-v-8fcebc32 data-v-5c96fb00><div class="edit" data-v-5c96fb00><div class="edit-link" data-v-5c96fb00 data-v-55695e90><!----></div></div><div class="updated" data-v-5c96fb00><!----></div></footer><!----><!--[--><!--]--></div></main></div><!----><!--]--></div>
+    <script>__VP_HASH_MAP__ = JSON.parse("{\"guide_index.md\":\"9e12913a\",\"guide_maintainance.md\":\"351f6de1\",\"guide_message_format.md\":\"ef1bd78f\",\"index.md\":\"2bf16652\"}")</script>
+    <script type="module" async src="/assets/app.f396f5fb.js"></script>
+    
+  </body>
+</html>
