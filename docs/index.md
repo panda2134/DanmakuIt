@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: ./static/icon.webp
+heroImage: /icon.webp
 heroAlt: DanmakuIt Icon
 heroText: 弹幕一下
 tagline: 开源 PaaS 弹幕投放平台
