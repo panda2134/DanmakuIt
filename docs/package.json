@@ -1,11 +1,21 @@
 {
   "license": "MIT",
   "devDependencies": {
+    "gh-pages": "^3.2.3",
     "vitepress": "^0.20.9"
   },
   "scripts": {
+    "predocs:dev": "node ./utils/envfile-generator.js",
+    "predocs:build": "node ./utils/envfile-generator.js",
+    "predocs:serve": "node ./utils/envfile-generator.js",
     "docs:dev": "vitepress dev .",
     "docs:build": "vitepress build .",
-    "docs:serve": "vitepress serve ."
+    "docs:serve": "vitepress serve .",
+    "docs:publish": "vitepress build . && gh-pages -d .vitepress/dist"
+  },
+  "dependencies": {
+    "array-buffer-to-hex": "^1.0.0",
+    "jszip": "^3.7.1",
+    "save-as": "^0.1.8"
   }
 }
