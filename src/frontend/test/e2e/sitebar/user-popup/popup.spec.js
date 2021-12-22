@@ -19,7 +19,7 @@ test.describe.parallel('User menu', () => {
       'liujiang19', 'gitlab3rd:1357'
     ])
     // Check avatar
-    await page.waitForTimeout(3000)
+    await expect(page.locator('div[role=menu]:has-text("退出登录")  .v-image__image.v-image__image--preload')).not.toBeVisible()
     await page.waitForLoadState('networkidle')
     await expect(page.locator('div[role=menu]:has-text("退出登录") .v-image__image'))
       .toHaveCSS('background-image', /gravatar/)

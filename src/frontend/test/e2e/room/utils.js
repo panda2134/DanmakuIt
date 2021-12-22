@@ -5,12 +5,8 @@ async function createRoom (page, roomName) {
   if (!roomName) {
     roomName = `playwright@${nanoid(8)}`
   }
-  await page.goto('http://localhost:3000/')
-
-  // Click button:has-text("管理房间")
-  await page.click('button:has-text("管理房间")')
-  await expect(page).toHaveURL('http://localhost:3000/my-room')
-
+  await page.goto('http://localhost:3000/my-room')
+  await page.waitForLoadState('networkidle')
   try {
     // Click menu btn
     await page.click('.v-speed-dial .mdi-menu')
