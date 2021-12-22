@@ -5,12 +5,8 @@ async function createRoom (page, roomName) {
   if (!roomName) {
     roomName = `playwright@${nanoid(8)}`
   }
-  await page.goto('http://localhost:3000/')
-
-  // Click button:has-text("管理房间")
-  await page.click('button:has-text("管理房间")')
-  await expect(page).toHaveURL('http://localhost:3000/my-room')
-
+  await page.goto('http://localhost:3000/my-room')
+  await page.waitForLoadState('networkidle')
   try {
     // Click menu btn
     await page.click('.v-speed-dial .mdi-menu')
@@ -61,6 +57,14 @@ async function deleteRoom (page, roomName) {
   await page.click('.v-speed-dial > button .mdi-close')
 }
 
+async function gotoRoomInfoPage (page, roomName) {
+  await page.goto('http://localhost:3000/my-room')
+  await Promise.all([
+    page.waitForNavigation(),
+    page.click(`.v-card:has-text("${roomName}") .v-card__actions button:has-text("管理")`)
+  ])
+}
+
 module.exports = {
-  createRoom, deleteRoom
+  createRoom, deleteRoom, gotoRoomInfoPage
 }
