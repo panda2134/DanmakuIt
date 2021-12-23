@@ -11,6 +11,7 @@
     "docs:dev": "vitepress dev .",
     "docs:build": "vitepress build .",
     "docs:serve": "vitepress serve .",
+    "docs:openapi": "sh -c 'cd ../src/dashboard && poetry run python export_openapi.py' > ./public/openapi.json",
     "docs:publish": "vitepress build . && gh-pages -d .vitepress/dist"
   },
   "dependencies": {
