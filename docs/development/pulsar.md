@@ -1,8 +1,4 @@
----
-title: Pulsar API
----
-
-# Pulsar API
+# Pulsar 消息格式
 
 ## 用户元信息推送
 

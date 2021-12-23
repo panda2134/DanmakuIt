@@ -19,8 +19,7 @@ module.exports = {
       { text: 'API', items: [
         { text: 'Pulsar接口', link: '/development/pulsar' },
         { text: '控制器', link: '/development/controller' },
-        { text: '管理后端', link: '/development/dashboard' },
-        { text: '前端', link: '/development/frontend' },
+        { text: '管理后端', link: '/development/dashboard' }
       ] }
     ]
   }

@@ -1,8 +1,3 @@
----
-title: 控制器API
----
-
-
 # 控制器 API
 
 ## Delete room

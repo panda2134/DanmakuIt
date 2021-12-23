@@ -1,7 +1,4 @@
----
-title: 指南
----
-
+# 新手指南
 
 <script setup>
 import env from '../envfile.json'
@@ -38,6 +35,10 @@ const createConfigZip = async () => {
     saveAs(zipBlob, 'envfile.zip')
 }
 </script>
+
+<div style="display:flex;justify-content: center;">
+    <img width="200" height="200" srcset="../icon.webp 200w, ../icon.png 200w" src="../icon.png">
+</div>
 
 弹幕一下是一款开源的弹幕投屏系统，其具有如下特点：
 
