@@ -25,6 +25,11 @@ git clone --recursive https://github.com/panda2134/DanmakuIt.git
 
 下图展示了各个服务的交互流程。
 
+![services](./assets/services.png)
+
 ## 接口设计
 
 ## 测试
+
+## 客户端
+
