@@ -40,4 +40,13 @@ $ yarn openapi
 
 ## 测试
 
-TODO: e2e test & unit test
+
+[![e2e tests](https://github.com/panda2134/DanmakuIt/actions/workflows/e2e.yml/badge.svg?branch=master)](https://github.com/panda2134/DanmakuIt/actions/workflows/e2e.yml)
+
+采用 GitHub Actions 自动运行端到端测试。你也可以本地执行现有测例：
+
+```shell
+yarn test:e2e  # 读取 ./test/e2e/ 文件夹下的所有测试用例
+```
+
+其中的一些例子是回归测试，因此不要轻易删除已有测例。

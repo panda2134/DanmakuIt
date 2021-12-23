@@ -1,8 +1,4 @@
----
-title: 指南
-editLink: true
----
-
+# 新手指南
 
 <script setup>
 import env from '../envfile.json'
@@ -39,6 +35,10 @@ const createConfigZip = async () => {
     saveAs(zipBlob, 'envfile.zip')
 }
 </script>
+
+<div style="display:flex;justify-content: center;">
+    <img width="200" height="200" srcset="/icon.webp 200w, /icon.png 200w" src="/icon.png">
+</div>
 
 弹幕一下是一款开源的弹幕投屏系统，其具有如下特点：
 
@@ -224,50 +224,7 @@ docker-compose up -d --build
 
 ![Running DanmakuIt](./assets/running.png)
 
-Enjoy it!
-
-### 配置桌面客户端
-
-桌面客户端可在 [发布页面](https://github.com/MoebiusMeow/DanmaKuItDesktop/releases) 下载；
-第一次运行时，需点击左下角设置按钮，填入部署服务器的域名。
-
-![DanmakuIt Client](./assets/danmakuit.png)
-
-::: info
-  目前桌面客户端只在 Windows 和 Arch Linux (KDE) 进行了测试，其中在 KDE 上有些小问题。
-  因此，我们暂时只提供 Windows 版本的可执行文件。
-:::
-
-## 开始使用
-
-完成了部署后，你可以尝试创建第一个房间，并接入微信公众号。
-
-### 第一个弹幕房间
-
-首先，在首页点击“注册登录”，并通过配置的任意一种验证方式进行登录。
-创建房间后，在房间信息可以看到微信公众号的回调地址和 Token，请原封不动地粘贴到微信公众号平台的管理页面中。同时，把微信公众号平台的 AppID / AppSecret 填入房间信息页面，最后点击提交以保存。
-
-![](./assets/wechat-appid1.png)
-![](./assets/wechat-appid2.png)
-
-在第一次填入这些信息后，应当抓取已有关注者信息，以避免头像 / 昵称显示出现问题。
-
-### 连接设备
-
-然后进入连接设备选项卡。在设备连接信息中，可以看到房间号和房间密码。
-使用这些信息，在投屏客户端中连接房间。运行客户端，把房间号与密码填入其中，成功连接后新发送的弹幕即会投送到屏幕上。
-
-![](./assets/client-connected.png)
-
-点击弹幕墙链接打开滚动式的弹幕墙。在不方便安装客户端投屏的设备上，滚动式弹幕墙会很有用。建议按 F11 全屏使用。
-
-![](./assets/danmaku-wall.png)
-
-### 弹幕审核
-
-弹幕审核选项卡提供了审核相关的功能，可以发送管理员弹幕，也可以撤下人工发现的违规弹幕信
-开启自动审核时，被云端标记为违规的弹幕不会显示；此外，匹配在房间信息页面指定关键词的弹幕也不会显示。
-
+完成了部署后，你可以尝试[创建第一个房间](../documentation/)。Enjoy it!
 
 ## 进一步了解
 ### 遇到问题？
