@@ -3,7 +3,7 @@ home: true
 heroImage: /icon.webp
 heroAlt: DanmakuIt Icon
 heroText: 弹幕一下
-tagline: 开源 PaaS 弹幕投放平台
+tagline: 开源弹幕投放平台
 actionText: 开始使用
 actionLink: /guide/
 features:
