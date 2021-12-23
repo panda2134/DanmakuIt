@@ -1,9 +1,11 @@
 # DanmakuIt
 
-<div style="display:flex; flex-direction:column; align-items: center;">
-<img src="./docs/public/icon.png">
-A PaaS Platform for danmaku casting.
-</div>
+<p align="center"> <!--we have to use this attr-->
+    <img src="./docs/public/icon.png">
+</p>
+<p align=center>
+    A PaaS Platform for danmaku casting.
+</p>
 
 [![Deploy to development server](https://github.com/panda2134/DanmakuIt/actions/workflows/dev.yml/badge.svg?branch=master)](https://github.com/panda2134/DanmakuIt/actions/workflows/dev.yml)
 
