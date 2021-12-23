@@ -5,5 +5,11 @@ module.exports = {
   lang: 'zh-CN',
   markdown: {
     lineNumbers: true
+  },
+  themeConfig: {
+    nav: [
+      { text: 'Home', link: '/' },
+      { text: 'GitHub', link: 'https://github.com/panda2134/DanmakuIt' }
+    ]
   }
 }

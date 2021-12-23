@@ -1,3 +1,9 @@
+---
+title: 指南
+editLink: true
+---
+
+
 <script setup>
 import env from '../envfile.json'
 import { ref, computed, onMounted } from 'vue'
@@ -34,13 +40,13 @@ const createConfigZip = async () => {
 }
 </script>
 
-## 开始使用
-
 弹幕一下是一款开源的弹幕投屏系统，其具有如下特点：
 
 - 支持多种投屏方式，如屏上的滚动弹幕、弹幕墙等
 - 通过接入微信公众号进行弹幕投屏，方便快捷
 - 管理功能强大，除使用自动审核外，管理员可以手动审核弹幕
+
+## 部署
 
 ### 准备工作
 
@@ -54,13 +60,15 @@ const createConfigZip = async () => {
 
 在下文中，我们假设服务器上运行 Ubuntu 20.04.
 
-### 安装 docker & docker-compose
+### 安装所需软件
 
-首先，在服务器上安装 `docker` 和 `docker-compose`。注意 sudo 可能需要输入密码。
+首先，在服务器上安装 `git`, `docker` 和 `docker-compose`。注意 sudo 可能需要输入密码。
 
 ```shell
-# 安装 docker
 sudo apt-get update
+# 安装 git
+sudo apt-get install -y git
+# 安装 docker
 sudo apt-get install -y \
     apt-transport-https \
     ca-certificates \
@@ -132,7 +140,7 @@ sudo systemctl reload caddy
 
 ![baidu-censor1](./assets/baidu-censor1.png)
 
-### 配置OAuth
+### 配置 OAuth
 
 目前支持 GitHub 和 GitLab 的 OAuth 作为管理平台登录方式。
 
@@ -183,7 +191,7 @@ git clone https://github.com/panda2134/DanmakuIt.git
 :::
 
 :::warning
-不建议在第一次运行前禁用新用户注册，否则将无人可以注册账户；建议待所有人注册完成后，在 `site.env` 中禁用，再运行
+不建议在第一次运行前禁用新用户注册，否则将无法注册第一个账户；建议待所有人注册完成后，在 `site.env` 中禁用，再运行
 ```shell
 docker-compose down
 docker-compose up -d
@@ -220,4 +228,63 @@ Enjoy it!
 
 ### 配置桌面客户端
 
-TODO: CI & config
+桌面客户端可在 [发布页面](https://github.com/MoebiusMeow/DanmaKuItDesktop/releases) 下载；
+第一次运行时，需点击左下角设置按钮，填入部署服务器的域名。
+
+![DanmakuIt Client](./assets/danmakuit.png)
+
+::: tip
+  目前桌面客户端只在 Windows 和 Arch Linux (KDE) 进行了测试，其中在 KDE 上有些小问题。
+  因此，我们暂时只提供 Windows 版本的可执行文件。
+:::
+
+## 开始使用
+
+完成了部署后，你可以尝试创建第一个房间，并接入微信公众号。
+
+### 第一个弹幕房间
+
+首先，在首页点击“注册登录”，并通过配置的任意一种验证方式进行登录。
+创建房间后，在房间信息可以看到微信公众号的回调地址和 Token，请原封不动地粘贴到微信公众号平台的管理页面中。同时，把微信公众号平台的 AppID / AppSecret 填入房间信息页面，最后点击提交以保存。
+
+![](./assets/wechat-appid1.png)
+![](./assets/wechat-appid2.png)
+
+在第一次填入这些信息后，应当抓取已有关注者信息，以避免头像 / 昵称显示出现问题。
+
+### 连接设备
+
+然后进入连接设备选项卡。在设备连接信息中，可以看到房间号和房间密码。
+使用这些信息，在投屏客户端中连接房间。运行客户端，把房间号与密码填入其中，成功连接后新发送的弹幕即会投送到屏幕上。
+
+![](./assets/client-connected.png)
+
+点击弹幕墙链接打开滚动式的弹幕墙。在不方便安装客户端投屏的设备上，滚动式弹幕墙会很有用。建议按 F11 全屏使用。
+
+![](./assets/danmaku-wall.png)
+
+### 弹幕审核
+
+弹幕审核选项卡提供了审核相关的功能，可以发送管理员弹幕，也可以撤下人工发现的违规弹幕信
+开启自动审核时，被云端标记为违规的弹幕不会显示；此外，匹配在房间信息页面指定关键词的弹幕也不会显示。
+
+## 遇到问题？
+
+可以在[issue](https://github.com/panda2134/DanmakuIt/issues)中提出，开发团队会尽快回复。但是，请保证你在提问前包含了以下信息：
+
+- 具体出现问题的步骤，以及该步骤的详细日志
+    - 如采用 `docker-compose logs` 获得弹幕一下的日志
+- 部署所用的操作系统环境
+- 采用的“弹幕一下”软件版本
+
+:::tip
+采用 Caddy 签发的 Let's Encrypt 证书在旧设备不受信任，这是一个[已知问题](https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/)。具体表现为，在这些设备上，客户端连接时提示“错误代码6: SSL handshake failed”.
+更新这些设备的操作系统可以解决问题。
+:::
+
+## 参与开发
+
+弹幕一下是由四名普通大学生开发的产品，由于我们水平有限，势必会有这样或者那样的问题。
+这是一款自由软件，你也能为代码做出贡献。
+
+要参与开发，请参考[开发文档](../development/index.md)。若你有兴趣加入项目维护，请发邮件给 me # panda2134 . site （请把 # 换成 at）.
