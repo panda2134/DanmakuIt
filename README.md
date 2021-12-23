@@ -1,7 +1,7 @@
 # DanmakuIt
 
 <p align="center"> <!--we have to use this attr-->
-    <img src="./docs/public/icon.png">
+    <img width=200 height=200 src="./docs/public/icon.png">
 </p>
 <p align=center>
     A PaaS Platform for danmaku casting.

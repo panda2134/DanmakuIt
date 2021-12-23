@@ -23,6 +23,8 @@ git clone --recursive https://github.com/panda2134/DanmakuIt.git
 - Docker 与 `docker-compose`，或者 Podman 与 `podman-compose`
 - Qt 6.2.2
 
+下图展示了各个服务的交互流程。
+
 ## 接口设计
 
 ## 测试
