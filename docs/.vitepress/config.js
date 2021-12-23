@@ -9,6 +9,7 @@ module.exports = {
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/' },
+      { text: 'Dev Docs', link: '/development/' },
       { text: 'GitHub', link: 'https://github.com/panda2134/DanmakuIt' }
     ]
   }
