@@ -25,6 +25,7 @@ jobs:
         with:
           version: '6.2.2'
           arch: win64_msvc2019_64
+          modules: qtwebsockets
           
       - name: msvc-build
         shell: cmd
