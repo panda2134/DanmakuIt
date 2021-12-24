@@ -4,7 +4,7 @@
     <img width=200 height=200 src="./docs/public/icon.png">
 </p>
 <p align=center>
-    A PaaS Platform for danmaku casting.
+    A platform for danmaku casting.
 </p>
 
 [![Deploy to development server](https://github.com/panda2134/DanmakuIt/actions/workflows/dev.yml/badge.svg?branch=master)](https://github.com/panda2134/DanmakuIt/actions/workflows/dev.yml)
