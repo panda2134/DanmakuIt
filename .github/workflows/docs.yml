@@ -21,7 +21,6 @@ jobs:
     - name: Install dependencies for docs
       working-directory: ./docs
       run: yarn install --frozen-lockfile
-    - run: npm run build --if-present 
     - uses: actions/setup-python@v2
       with:
         python-version: 3.9.9
