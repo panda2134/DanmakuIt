@@ -3,6 +3,8 @@ name: Publish docs
 on:
   push:
     branches: [ docs ]
+    paths:
+      - ./docs
   workflow_dispatch:
   pull_request:
     branches: [ master ]
