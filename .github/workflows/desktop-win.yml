@@ -29,6 +29,7 @@ jobs:
       - name: msvc-build
         shell: cmd
         run: |
+          cd src/client
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           qmake
           nmake
