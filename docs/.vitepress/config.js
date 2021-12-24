@@ -23,11 +23,9 @@ module.exports = {
       ] }
     ],
     algolia: {
+      appId: '623XG0125Y',
       apiKey: '242a13553025f834f1771c43fb4a0e6d',
-      indexName: 'docs',
-      searchParameters: {
-        facetFilters: ['tags:guide,docs,api']
-      }
+      indexName: 'DanmakuIt'
     }
   }
 }
