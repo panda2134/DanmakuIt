@@ -23,6 +23,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v2.14.0
         with:
+          aqtversion: '==2.0.5'
           version: '6.2.2'
           arch: win64_msvc2019_64
           modules: qtwebsockets
