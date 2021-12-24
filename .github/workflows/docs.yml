@@ -71,8 +71,7 @@ jobs:
     - name: Wait on
       uses: iFaxity/wait-on-action@v1
       with:
-        resource:
-          https-get: https://blog.panda2134.site/DanmakuIt/commit/${{ github.sha }}
+        resource: https://blog.panda2134.site/DanmakuIt/commit/${{ github.sha }}
         delay: 60000
     - name: Algolia Docsearch Indexer
       uses: darrenjennings/algolia-docsearch-action@v0.2.0
