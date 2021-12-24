@@ -24,7 +24,7 @@ module.exports = {
     ],
     algolia: {
       apiKey: '242a13553025f834f1771c43fb4a0e6d',
-      indexName: 'docs',
+      indexName: 'DanmakuIt',
       searchParameters: {
         facetFilters: ['tags:guide,docs,api']
       }
