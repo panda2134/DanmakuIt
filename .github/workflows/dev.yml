@@ -20,22 +20,22 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
       - name: Add to known hosts
         run: |
-          ssh-keyscan 152.136.181.192 > ~/.ssh/known_hosts
+          ssh-keyscan danmakuit.panda2134.site > ~/.ssh/known_hosts
       - name: Fetch the repository on dev machine
         run: |
-          ssh root@152.136.181.192 "cd /srv/DanmakuIt && git fetch --all && git reset --hard origin/master && git checkout $GITHUB_SHA"
+          ssh root@danmakuit.panda2134.site "cd /srv/DanmakuIt && git fetch --all && git reset --hard origin/master && git checkout $GITHUB_SHA"
       - name: Write environs
         env:
           SITE_ENV: ${{ secrets.DEPLOY_SITE_ENV }}
           TOKEN_ENV: ${{ secrets.DEPLOY_TOKEN_ENV }}
           API_ENV: ${{ secrets.DEPLOY_API_ENV }}
         run: |
-          echo $SITE_ENV | base64 -d | ssh root@152.136.181.192 "tee /srv/DanmakuIt/site.env" > /dev/null 2>&1
-          echo $TOKEN_ENV | base64 -d | ssh root@152.136.181.192 "tee /srv/DanmakuIt/token.env" > /dev/null 2>&1
-          echo $API_ENV | base64 -d | ssh root@152.136.181.192 "tee /srv/DanmakuIt/api.env" > /dev/null 2>&1
+          echo $SITE_ENV | base64 -d | ssh root@danmakuit.panda2134.site "tee /srv/DanmakuIt/site.env" > /dev/null 2>&1
+          echo $TOKEN_ENV | base64 -d | ssh root@danmakuit.panda2134.site "tee /srv/DanmakuIt/token.env" > /dev/null 2>&1
+          echo $API_ENV | base64 -d | ssh root@danmakuit.panda2134.site "tee /srv/DanmakuIt/api.env" > /dev/null 2>&1
       - name: Rebuild
         run: |
-          ssh root@152.136.181.192 "export GITHUB_SHA=${GITHUB_SHA}; cd /srv/DanmakuIt && docker-compose build"
+          ssh root@danmakuit.panda2134.site "export GITHUB_SHA=${GITHUB_SHA}; cd /srv/DanmakuIt && docker-compose build"
       - name: Fire up the new server # build again in case of previous error...
         run: |
-          ssh root@152.136.181.192 "cd /srv/DanmakuIt && docker-compose down -t 30 && docker-compose up -d"
+          ssh root@danmakuit.panda2134.site "cd /srv/DanmakuIt && docker-compose down -t 30 && docker-compose up -d"
