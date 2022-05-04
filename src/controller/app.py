@@ -1,4 +1,5 @@
 import asyncio
+import secrets
 from hashlib import sha1, sha256
 from binascii import b2a_base64
 import json as jsonlib
@@ -17,6 +18,8 @@ from aioredis.client import PubSub
 from httpx import AsyncClient
 from sanic import Sanic, Request, text, json
 import pulsar
+from weixin import WXAPPAPI
+from weixin.lib.wxcrypt import WXBizDataCrypt
 
 with open('/private_key/private.key', 'rb') as f:
     private_key = serialization.load_der_private_key(f.read(), None)
@@ -391,7 +394,7 @@ def get_token(room: str):
     return readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]
 
 
-@app.post('/port/<room:str>')  # wechat send danmaku
+@app.post('/port/<room:str>')  # 微信公众号发弹幕
 async def port_post(request: Request, room: str):
     token: Optional[str] = request.get_args().get('token')
     if token != get_token(room):
@@ -451,7 +454,7 @@ async def port_post(request: Request, room: str):
     return reply_xml(success)
 
 
-@app.get('/port/<room:str>')  # wechat access
+@app.get('/port/<room:str>')  # 微信公众号接入
 async def port_get(request: Request, room: str):
     token = readable_sha256(room.encode() + wechat_token_salt)[:wechat_token_length]
     query = request.get_args()
@@ -466,6 +469,72 @@ async def port_get(request: Request, room: str):
         return text(echostr)
 
     return text('Wrong signature!', status=403)
+
+
+mpapi = WXAPPAPI(appid=os.getenv('WECHAT_MP_APPID'), app_secret=os.getenv('WECHAT_MP_APPSECRET'))
+
+
+@app.post('/wechat-mp/login')
+async def login_wechat_mp(request: Request):  # 微信小程序登陆，要求消息体为 {"code": "小程序登陆code"}
+    if not isinstance(request.json, dict) or 'code' not in request.json:
+        return json({'code': 400, 'message': '请求体不合法'}, status=400)
+    session_info = mpapi.exchange_code_for_session_key(request.json['code'])
+
+    # 给用户随机一个不可猜测的 id，作为其登陆态
+    mp_uid = secrets.token_hex(16)
+    # 保存 session_key，有效期 12h
+    await redis.set('mp_session_key:' + mp_uid, session_info['session_key'], ex=12 * 60 * 60)
+    await redis.set('mp_openid:' + mp_uid, session_info['openid'], ex=12 * 60 * 60)
+    # 返回 Token
+    return json({"token": mp_uid})
+
+
+@app.post('/wechat-mp/<room:str>/profile')
+async def update_user_profile(request: Request, room: str):  # POST 内容为 wx.getUserInfo 的返回内容
+    if room not in room_exist_cache:
+        return text('room not found', status=404)
+
+    session_key = await redis.get('mp_session_key:' + request.token)
+    openid = await redis.get('mp_openid:' + request.token)
+    if session_key is None or openid is None:
+        return json({'code': 401, 'message': '请求token错误'}, status=401)
+
+    user_info = request.json.get('userInfo')
+    raw_data = request.json.get('rawData', 'BAD_DATA')
+    signature = request.json.get('signature', 'BAD_SIGNATURE')
+    if sha1(raw_data + session_key) != signature:
+        return json({'code': 400, 'message': '验证签名错误'}, status=400)
+
+    data = dict(id=f'user@wechatmp:{openid}',
+                nickname=user_info['nickName'],
+                headimgurl=user_info['avatarUrl'])
+    get_user_producer(room).send_async(
+        b'\x00\x00\x02',
+        callback=lambda *_: None,
+        properties=data
+    )
+    await redis.publish('room_user', f'{room}:{data["id"]}')
+
+
+@app.post('/wechat-mp/<room:str>/danmaku')
+async def wechat_mp_send_danmaku(request: Request, room: str):  # 发送弹幕，需要携带bearer token，消息体为 {"content": "弹幕内容"}
+    openid = await redis.get('mp_openid:' + request.token)
+    if openid is None:
+        return json({'code': 401, 'message': '请求token错误'}, status=401)
+    sender = 'user@wechatmp:' + openid
+
+    get_raw_producer().send_async(
+        content=jsonlib.dumps(
+            dict(
+                content=request.json['content'],
+                sender=sender,
+                room=room,
+            ),
+            ensure_ascii=False
+        ).encode(),
+        callback=lambda *_: None
+    )
+    return json({"code": 200, "message": "发送成功"})
 
 
 app.run(host='0.0.0.0', port=8000, workers=2)
