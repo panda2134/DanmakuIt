@@ -471,7 +471,8 @@ async def port_get(request: Request, room: str):
     return text('Wrong signature!', status=403)
 
 
-mpapi = WXAPPAPI(appid=os.getenv('WECHAT_MP_APPID'), app_secret=os.getenv('WECHAT_MP_APPSECRET'))
+mpapi = WXAPPAPI(appid=os.getenv('WECHAT_MP_APPID'), app_secret=os.getenv('WECHAT_MP_APPSECRET'),
+                 grant_type='authorization_code')
 
 
 @app.post('/wechat-mp/login')
