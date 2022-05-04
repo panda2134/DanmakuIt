@@ -182,13 +182,15 @@ async def get_room_mpcode(room_id: str, passcode: HTTPAuthorizationCredentials =
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='No access token for WeChat MiniProgram.')
     wxacode_params = {
-        'access_token': access_token,
         'scene': room_id,
         'env_version': os.getenv('WECHAT_MP_ENV_VERSION')
     }
-    response = await http_client.post('https://api.weixin.qq.com/wxa/getwxacodeunlimit', params=wxacode_params)
+    response = await http_client.post('https://api.weixin.qq.com/wxa/getwxacodeunlimit',
+                                      params={'access_token': access_token},
+                                      json=wxacode_params)
     response.raise_for_status()
-    image_dataurl = datauri.DataURI.make(mimetype=response.headers.get('content-type'),
+
+    image_dataurl = datauri.DataURI.make(mimetype='image/png',
                                          charset='us-ascii',
                                          base64=True,
                                          data=response.content)
