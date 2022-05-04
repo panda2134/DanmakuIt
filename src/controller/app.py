@@ -503,7 +503,7 @@ async def update_user_profile(request: Request, room: str):  # POST 内容为 wx
     user_info = request.json.get('userInfo')
     raw_data = request.json.get('rawData', 'BAD_DATA')
     signature = request.json.get('signature', 'BAD_SIGNATURE')
-    if sha1(raw_data + session_key) != signature:
+    if sha1((raw_data + session_key).encode('utf8')).hexdigest() != signature:
         return json({'code': 400, 'message': '验证签名错误'}, status=400)
 
     data = dict(id=f'user@wechatmp:{openid}',
