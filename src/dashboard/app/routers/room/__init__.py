@@ -184,7 +184,8 @@ async def get_room_mpcode(room_id: str, passcode: HTTPAuthorizationCredentials =
     wxacode_params = {
         'scene': room_id,
         'env_version': os.getenv('WECHAT_MP_ENV_VERSION'),
-        'is_hyaline': True
+        'page': 'pages/index/index',
+        'check_path': False
     }
     response = await http_client.post('https://api.weixin.qq.com/wxa/getwxacodeunlimit',
                                       params={'access_token': access_token},
