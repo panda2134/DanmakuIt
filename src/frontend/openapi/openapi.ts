@@ -42,10 +42,6 @@ export interface paths {
     /** Set `room_passcode` in HTTP Bearer; `pulsar_jwt` is then used for pulsar connection */
     get: operations["client_login_room_room__room_id__client_login_get"];
   };
-  "/room/{room_id}/mpcode": {
-    /** Get WeChat MiniProgram code for sending danmaku. Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
-    get: operations["get_room_mpcode_room__room_id__mpcode_get"];
-  };
   "/room/{room_id}/qrcode": {
     /** Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
     get: operations["get_room_qrcode_room__room_id__qrcode_get"];
@@ -138,9 +134,6 @@ export interface components {
       wechat_appid?: string;
       wechat_appsecret?: string;
       user_danmaku_colors?: string[];
-    };
-    RoomWeChatMpCodeResponse: {
-      image_dataurl: string;
     };
     User: {
       username: string;
@@ -359,28 +352,6 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["Room"];
-        };
-      };
-      /** Validation Error */
-      422: {
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
-    };
-  };
-  /** Get WeChat MiniProgram code for sending danmaku. Set `room_passcode` in HTTP Bearer;This is provided for clients so that they can fetch the QR code without JWT. */
-  get_room_mpcode_room__room_id__mpcode_get: {
-    parameters: {
-      path: {
-        room_id: string;
-      };
-    };
-    responses: {
-      /** respond with a JSON containing dataurl for MP Code. */
-      200: {
-        content: {
-          "application/json": components["schemas"]["RoomWeChatMpCodeResponse"];
         };
       };
       /** Validation Error */

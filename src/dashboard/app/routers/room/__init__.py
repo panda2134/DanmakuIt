@@ -1,11 +1,8 @@
-import os
 import secrets
 from typing import Any, Callable, Coroutine, Sequence, List
 
 import asyncio
 from datetime import datetime
-
-import datauri
 from arq.connections import ArqRedis
 
 from fastapi import APIRouter, Depends, HTTPException, status, Body
@@ -15,12 +12,9 @@ from httpx import HTTPError
 from app.bgtasks import get_bg_queue
 from app.models.danmaku import DanmakuMessage
 
-from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse, OnlineSubscription, \
-    RoomWeChatMpCodeResponse
+from app.models.room import Room, RoomNameModel, RoomUpdate, RoomIdModel, RoomQRCodeResponse, OnlineSubscription
 from app.models.user import User
 from app.utils.jwt import get_current_user
-from app.utils.mpsdk import mpsdk
-from app.utils.redis import get_redis
 from app.utils.room import generate_room_id, readable_sha256, push_setting
 
 from app.config import app_config
@@ -129,7 +123,7 @@ async def modify_room(room: RoomUpdate, room_id: str, room_query: dict = Depends
 async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-
+    
     resp = await http_client.delete(f'{app_config.controller_url}/room/{room_id}')
     if not resp.is_success:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -137,7 +131,7 @@ async def delete_room(room_id: str, room_query: dict = Depends(room_with_auth)):
 
     retry = 0
     while (await get_db()['room'].delete_one(room_query)).deleted_count == 0:
-        if (retry := retry + 1) > 5:  # can we roll back?
+        if (retry := retry + 1) > 5: # can we roll back?
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Cannot delete the room.')
         await asyncio.sleep(2.0)
 
@@ -163,36 +157,6 @@ async def client_login_room(room_id: str, passcode: HTTPAuthorizationCredentials
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid room passcode.')
 
     return room
-
-
-# the unused local variable is for authentication purposes; do not remove it!
-# noinspection PyUnusedLocal
-@router.get('/{room_id}/mpcode', response_model=RoomWeChatMpCodeResponse,
-            description='Get WeChat MiniProgram code for sending danmaku. Set `room_passcode` in HTTP Bearer;' +
-                        'This is provided for clients so that they can fetch the QR code without JWT.',
-            response_description='respond with a JSON containing dataurl for MP Code.')
-async def get_room_mpcode(room_id: str, passcode: HTTPAuthorizationCredentials = Depends(room_passcode_scheme)):
-    doc = await get_db()['room'].find_one({'room_id': room_id})
-    if doc is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
-    room = Room.parse_obj(doc)
-    redis = await get_redis()
-    access_token = await redis.get('access_token', encoding='utf8')
-    if not access_token:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail='No access token for WeChat MiniProgram.')
-    wxacode_params = {
-        'access_token': access_token,
-        'scene': room_id,
-        'env_version': os.getenv('WECHAT_MP_ENV_VERSION')
-    }
-    response = await http_client.post('https://api.weixin.qq.com/wxa/getwxacodeunlimit', params=wxacode_params)
-    response.raise_for_status()
-    image_dataurl = datauri.DataURI.make(mimetype=response.headers.get('content-type'),
-                                         charset='us-ascii',
-                                         base64=True,
-                                         data=response.content)
-    return {'image_dataurl': image_dataurl}
 
 
 # the unused local variable is for authentication purposes; do not remove it!
@@ -241,7 +205,7 @@ async def fetch_subscribers_of_room(room_id: str, room_query: dict = Depends(roo
 @router.post('/{room_id}/danmaku-admin', response_model=DanmakuMessage,
              description='Send a danmaku message from admin. Sender in danmaku will always be overwritten to admin.')
 async def danmaku_admin_send(room_id: str, room_query: dict = Depends(room_with_auth),
-                             danmaku: DanmakuMessage = Body(...)):
+                         danmaku: DanmakuMessage = Body(...)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     try:
@@ -272,7 +236,7 @@ async def danmaku_update(room_id: str, room_query: dict = Depends(room_with_auth
 
 
 @router.get('/{room_id}/consumers', response_model=List[OnlineSubscription],
-            description='Get the online consumers of a room.')
+             description='Get the online consumers of a room.')
 async def online_consumers(room_id: str, room_query: dict = Depends(room_with_auth)):
     if not await get_db()['room'].count_documents(room_query, limit=1):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
