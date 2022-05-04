@@ -177,7 +177,7 @@ async def get_room_mpcode(room_id: str, passcode: HTTPAuthorizationCredentials =
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No such room.')
     room = Room.parse_obj(doc)
     redis = await get_redis()
-    access_token = await redis.get('access_token', encoding='utf8')
+    access_token = await redis.get('mp_access_token', encoding='utf8')
     if not access_token:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail='No access token for WeChat MiniProgram.')
