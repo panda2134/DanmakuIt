@@ -515,6 +515,7 @@ async def update_user_profile(request: Request, room: str):  # POST 内容为 wx
         properties=data
     )
     await redis.publish('room_user', f'{room}:{data["id"]}')
+    return json({'code': 200, 'message': '上传成功'})
 
 
 @app.post('/wechat-mp/<room:str>/danmaku')
