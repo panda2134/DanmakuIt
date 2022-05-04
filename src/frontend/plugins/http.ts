@@ -78,11 +78,6 @@ function getAPI ({ $axios, $config }: Context): APIType {
         headers: { Authorization: `Bearer ${roomPasscode}` }
       })
     },
-    '/room/{room_id}/mpcode': {
-      get: (roomId: string, roomPasscode: string) => $axios.$get(`/room/${roomId}/mpcode`, {
-        headers: { Authorization: `Bearer ${roomPasscode}` }
-      })
-    },
     '/room/{room_id}/fetch-subscribers': {
       post: (roomId: string) => $axios.$post(`/room/${roomId}/fetch-subscribers`)
     },

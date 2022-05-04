@@ -33,20 +33,11 @@
         </h1>
       </v-col>
       <v-col xl="4" cols="12">
-        <div>
-          <v-img :src="qrCodePath" width="150px" height="150px" class="float-end">
-            <template #placeholder>
-              <img width="150px" height="150px" src="~assets/qr.svg" alt="QR Placeholder">
-            </template>
-          </v-img>
-        </div>
-        <div>
-          <v-img :src="mpCode" width="150px" height="150px" class="float-end">
-            <template #placeholder>
-              <img width="150px" height="150px" src="~assets/qr.svg" alt="MP Placeholder">
-            </template>
-          </v-img>
-        </div>
+        <v-img :src="qrCodePath" width="150px" height="150px" class="float-end">
+          <template #placeholder>
+            <img width="150px" height="150px" src="~assets/qr.svg" alt="QR Placeholder">
+          </template>
+        </v-img>
       </v-col>
     </v-row>
     <div ref="danmakuBox" class="flex-grow-1 overflow-y-hidden d-flex flex-column justify-end">
@@ -104,7 +95,6 @@ interface WallData {
   passcodeInput: string;
   showPasscodeDialog: boolean;
   qrCodeTicket: string;
-  mpCode: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -148,8 +138,7 @@ export default Vue.extend({
       retryHandle: setInterval(() => {}, 1e10), // noop
       passcodeInput: '',
       showPasscodeDialog: false,
-      qrCodeTicket: '',
-      mpCode: ''
+      qrCodeTicket: ''
     }
   },
   async fetch () {
@@ -163,12 +152,6 @@ export default Vue.extend({
       } catch (e) {
         this.$toast.error('获取二维码失败，可能是AppId/AppSecret填写错误')
       }
-      try {
-        this.mpCode = (await this.$api['/room/{room_id}/mpcode'].get(roomId, roomPasscode)).image_dataurl
-      } catch (e) {
-        this.$toast.error('获取小程序码失败，可能是AppId/AppSecret填写错误')
-      }
-
       // @ts-ignore
       await new Promise<void>((resolve, reject) => {
         this.wsDanmaku = new DanmakuWallClient(
