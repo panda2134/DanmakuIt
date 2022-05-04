@@ -34,7 +34,7 @@
       </v-col>
       <v-col xl="4" cols="12">
         <div>
-          <v-img :src="qrCodePath" width="150px" height="150px" class="float-end">
+          <v-img v-show="qrCodeTicket" :src="qrCodePath" width="150px" height="150px" class="float-end">
             <template #placeholder>
               <img width="150px" height="150px" src="~assets/qr.svg" alt="QR Placeholder">
             </template>
@@ -161,12 +161,12 @@ export default Vue.extend({
       try {
         this.qrCodeTicket = (await this.$api['/room/{room_id}/qrcode'].get(roomId, roomPasscode)).ticket
       } catch (e) {
-        this.$toast.error('获取二维码失败，可能是AppId/AppSecret填写错误')
+        this.$toast.error('获取公众号二维码失败，可能是公众号AppId/AppSecret填写错误')
       }
       try {
         this.mpCode = (await this.$api['/room/{room_id}/mpcode'].get(roomId, roomPasscode)).image_dataurl
       } catch (e) {
-        this.$toast.error('获取小程序码失败，可能是AppId/AppSecret填写错误')
+        this.$toast.error('获取小程序码失败，可能是小程序AppId/AppSecret填写错误')
       }
 
       // @ts-ignore

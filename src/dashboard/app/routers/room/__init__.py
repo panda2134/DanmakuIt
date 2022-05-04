@@ -183,7 +183,8 @@ async def get_room_mpcode(room_id: str, passcode: HTTPAuthorizationCredentials =
                             detail='No access token for WeChat MiniProgram.')
     wxacode_params = {
         'scene': room_id,
-        'env_version': os.getenv('WECHAT_MP_ENV_VERSION')
+        'env_version': os.getenv('WECHAT_MP_ENV_VERSION'),
+        'is_hyaline': True
     }
     response = await http_client.post('https://api.weixin.qq.com/wxa/getwxacodeunlimit',
                                       params={'access_token': access_token},

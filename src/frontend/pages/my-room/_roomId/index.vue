@@ -7,8 +7,7 @@
       dense
       elevation="1"
     >
-      尚未设置微信公众号AppID/AppSecret，弹幕墙头像抓取、二维码显示等功能将不会工作。
-      完成设置后，请点击按钮抓取现有关注者的头像等信息。
+      尚未设置微信公众号AppID/AppSecret，公众号二维码显示功能将不会工作。
     </v-alert>
     <basic-info-card
       class="mb-5"
