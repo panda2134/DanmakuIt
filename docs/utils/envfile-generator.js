@@ -15,7 +15,8 @@ for (const filename of envfiles) {
     const content = fs.readFileSync(path.join(rootPath, filename)).toString('utf-8').split('\n')
     for (const line of content) {
         const configItemName = line.split('=', 2)[0]
-        const docMeta = line.split(/\:\:docs/, 2).at(-1).trim().split(' ')
+        const parts = line.split(/\:\:docs/, 2)
+        const docMeta = parts[parts.length-1].trim().split(' ')
         const cmd = docMeta[0]
         const field = docMeta.slice(1).join(' ').trim()
 
