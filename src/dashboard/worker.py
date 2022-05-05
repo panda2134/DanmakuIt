@@ -2,19 +2,24 @@
 """
 
 import asyncio
+import datetime
 import logging
+import os
 from logging import getLogger
 from typing import Mapping, Any
 
 import httpx
 from arq import Retry, ArqRedis
 from pydantic import BaseModel
+from weixin import WXAPPAPI
 
 from app.bgtasks import redis_settings
 from app.config import app_config
 from app.db import get_db
 from app.models.room import Room
+from app.utils.mpsdk import mpsdk
 from app.utils.room import push_setting
+from app.utils.redis import get_redis
 
 logger = getLogger('bgtasks').getChild('wechat')
 logger.setLevel(logging.INFO)
@@ -34,6 +39,23 @@ async def resume_controller(ctx: Mapping[str, Any]):
                 break
             except:
                 await asyncio.sleep(5.0)
+
+
+async def refresh_wechat_mp_access_token(ctx: Mapping[str, Any]):
+    bg_queue: ArqRedis = ctx['redis']
+    reply: Mapping[str, Any] = dict()
+    try:
+        reply = mpsdk.client_credential_for_access_token()
+        logger.info('wechat-mp token: %s', reply)
+        redis = await get_redis()
+        await redis.set('mp_access_token', str(reply['access_token']).encode('utf8'),
+                        expire=int(reply['expires_in']))
+    except Exception as e:
+        logger.warning('WeChat MiniProgram access_token update failed: %s', e)
+
+    expire = float(reply['expires_in'])
+    defer_secs = max(expire / 2, expire - 1e3)
+    await bg_queue.enqueue_job('refresh_wechat_mp_access_token', _defer_by=datetime.timedelta(seconds=defer_secs))
 
 
 async def refresh_wechat_access_token_all(ctx: Mapping[str, Any]):
@@ -103,6 +125,7 @@ async def startup(ctx):
     bg_queue: ArqRedis = ctx['redis']
     await bg_queue.enqueue_job('refresh_wechat_access_token_all')
     await bg_queue.enqueue_job('resume_controller')
+    await bg_queue.enqueue_job('refresh_wechat_mp_access_token')
 
 
 async def shutdown(ctx):
@@ -112,6 +135,7 @@ async def shutdown(ctx):
 
 class WorkerSettings:
     redis_settings = redis_settings
-    functions = [resume_controller, refresh_wechat_access_token_all, refresh_wechat_access_token_room]
+    functions = [resume_controller, refresh_wechat_access_token_all,
+                 refresh_wechat_access_token_room, refresh_wechat_mp_access_token]
     on_startup = startup
     on_shutdown = shutdown

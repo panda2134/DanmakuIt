@@ -17,6 +17,10 @@ class RoomQRCodeResponse(BaseModel):
     url: str
 
 
+class RoomWeChatMpCodeResponse(BaseModel):
+    image_dataurl: str
+
+
 class ConsumerDetail(BaseModel):
     address: Optional[str]
     consumerName: Optional[str]

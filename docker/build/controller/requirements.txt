@@ -3,3 +3,4 @@ sanic==21.9.3
 cryptography==36.0.1
 PyJWT==2.3.0
 aioredis==2.0.0
+python-weixin==0.5.0

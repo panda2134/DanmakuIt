@@ -55,8 +55,16 @@ const createConfigZip = async () => {
 - 一台80，443端口对外可用的服务器，其需有 HTTPS 证书；
     - 如果你不知道如何申请证书，可以参考 [这里](https://caddyserver.com/docs/automatic-https)；后文也会详细介绍
 - 一个域名，解析到上述服务器，用于申请 HTTPS 证书
-- 一个微信公众号，用于接入弹幕一下；测试阶段，可以采用微信接口测试号
+- 用来上传小程序的微信公众平台账号，需 [自行注册](https://mp.weixin.qq.com/wxopen/waregister?action=step1)，并在小程序管理页面 开发 - 开发管理 - 开发设置 - 开发者ID 获取 AppId 和 AppSecret，记录备用。
+- （可选）一个微信公众号，用于接入弹幕一下；测试阶段，可以采用微信接口测试号
     - 测试号可在 [这里](https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login) 申请
+
+::: tip
+之前，弹幕一下是通过接入微信公众号进行弹幕发送的；但是鉴于微信[接口调整限制](https://developers.weixin.qq.com/community/develop/doc/00028edbe3c58081e7cc834705b801?blockType=1)，该方法发送的弹幕不再包含用户的昵称和头像，从而无法在弹幕投屏显示。
+
+因此，我们紧急上线了[微信小程序](https://github.com/panda2134/DanmakuIt-mp)，用于在发送弹幕时获取用户个人信息。
+如果您自行部署弹幕一下平台，需要同时部署对应的小程序，方法见下。
+:::
 
 在下文中，我们假设服务器上运行 Ubuntu 20.04.
 
@@ -225,6 +233,33 @@ docker-compose up -d --build
 ![Running DanmakuIt](./assets/running.png)
 
 完成了部署后，你可以尝试[创建第一个房间](../documentation/)。Enjoy it!
+
+### 部署小程序
+
+为了实现发送弹幕时获取用户个人信息的功能，需要自行部署发弹幕小程序。
+
+#### 小程序端设置
+
+首先，完成小程序的 [注册](https://mp.weixin.qq.com/wxopen/waregister?action=step1)，并完善其基本信息。
+此外，需要在 开发 - 开发管理 - 开发设置 - 服务器域名 处，把 `request合法域名` 设为你的部署域名（含 `https`），如  `https://danmakuit.example.com`。
+
+然后，从下列源码仓库获得小程序代码：[https://github.com/panda2134/DanmakuIt-mp](https://github.com/panda2134/DanmakuIt-mp)，下载源码解压后，进行以下修改：
+
+- `project.config.json`: 修改 `"appid"` 字段的值为你的小程序 AppId
+- `miniprogram/utils/util.ts`: 修改 `BASE_URL` 的值为你的部署域名（含 `https` ），如 `https://danmakuit.example.com`
+
+
+最后采用 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/devtools.html) 打开项目文件夹，上传并提交审核。
+
+:::info
+小程序提交审核上线时，服务端应当处于开启状态。
+:::
+
+#### 服务端设置
+
+服务端需要配置小程序 AppId / AppSecret，你应当在使用 [配置生成工具](#下载和配置弹幕一下) 时已经填入了它们。如果没有，请自行填入后重启服务器。
+
+服务器配置微信小程序环境版本用于小程序码的生成。默认生成的是 `release` 版本小程序码；如果小程序尚未发布，可以在通过微信开发者工具发布体验版后，将此字段设为 `trial`。具体可用取值可以参考 [对应微信API](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/qr-code/wxacode.getUnlimited.html#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0) 的 `env_version` 参数。
 
 ## 进一步了解
 ### 遇到问题？
