@@ -243,7 +243,7 @@ socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "httpx"
-version = "0.21.3"
+version = "0.22.0"
 description = "The next generation HTTP client."
 category = "main"
 optional = false
@@ -252,7 +252,7 @@ python-versions = ">=3.6"
 [package.dependencies]
 certifi = "*"
 charset-normalizer = "*"
-httpcore = ">=0.14.0,<0.15.0"
+httpcore = ">=0.14.5,<0.15.0"
 rfc3986 = {version = ">=1.3,<2", extras = ["idna2008"]}
 sniffio = "*"
 
@@ -260,6 +260,7 @@ sniffio = "*"
 brotli = ["brotlicffi", "brotli"]
 cli = ["click (>=8.0.0,<9.0.0)", "rich (>=10.0.0,<11.0.0)", "pygments (>=2.0.0,<3.0.0)"]
 http2 = ["h2 (>=3,<5)"]
+socks = ["socksio (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "idna"
@@ -507,7 +508,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "5c0057cb40f36fdcebc2bcbc91963928c2b0abe0e4df00fe5bffad5e9261ced3"
+content-hash = "ad2c915fb068e51989c064ae99d2d35eade4a3629a93097183e9ed5edb273412"
 
 [metadata.files]
 aioredis = [
@@ -696,8 +697,8 @@ httpcore = [
     {file = "httpcore-0.14.7.tar.gz", hash = "sha256:7503ec1c0f559066e7e39bc4003fd2ce023d01cf51793e3c173b864eb456ead1"},
 ]
 httpx = [
-    {file = "httpx-0.21.3-py3-none-any.whl", hash = "sha256:df9a0fd43fa79dbab411d83eb1ea6f7a525c96ad92e60c2d7f40388971b25777"},
-    {file = "httpx-0.21.3.tar.gz", hash = "sha256:7a3eb67ef0b8abbd6d9402248ef2f84a76080fa1c839f8662e6eb385640e445a"},
+    {file = "httpx-0.22.0-py3-none-any.whl", hash = "sha256:e35e83d1d2b9b2a609ef367cc4c1e66fd80b750348b20cc9e19d1952fc2ca3f6"},
+    {file = "httpx-0.22.0.tar.gz", hash = "sha256:d8e778f76d9bbd46af49e7f062467e3157a5a3d2ae4876a4bbfd8a51ed9c9cb4"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
