@@ -364,7 +364,7 @@ python-versions = "*"
 
 [[package]]
 name = "python-dotenv"
-version = "0.19.2"
+version = "0.20.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
 category = "dev"
 optional = false
@@ -507,7 +507,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "5c0057cb40f36fdcebc2bcbc91963928c2b0abe0e4df00fe5bffad5e9261ced3"
+content-hash = "b34f297c7144b78f5bc24c21d02a967989320582be8389d0d49a2af10f1e279b"
 
 [metadata.files]
 aioredis = [
@@ -902,8 +902,8 @@ python-datauri = [
     {file = "python_datauri-1.1.0-py2.py3-none-any.whl", hash = "sha256:fbbc34fd934e4d225b8ebcd176fbc4a850b70ef37e8717f12186ec43bb7f5e68"},
 ]
 python-dotenv = [
-    {file = "python-dotenv-0.19.2.tar.gz", hash = "sha256:a5de49a31e953b45ff2d2fd434bbc2670e8db5273606c1e737cc6b93eff3655f"},
-    {file = "python_dotenv-0.19.2-py2.py3-none-any.whl", hash = "sha256:32b2bdc1873fd3a3c346da1c6db83d0053c3c62f28f1f38516070c4c8971b1d3"},
+    {file = "python-dotenv-0.20.0.tar.gz", hash = "sha256:b7e3b04a59693c42c36f9ab1cc2acc46fa5df8c78e178fc33a8d4cd05c8d498f"},
+    {file = "python_dotenv-0.20.0-py3-none-any.whl", hash = "sha256:d92a187be61fe482e4fd675b6d52200e7be63a12b724abbf931a40ce4fa92938"},
 ]
 python-weixin = [
     {file = "python-weixin-0.5.0.tar.gz", hash = "sha256:e020ab23f5efb9aff9bda17c679fad2cac65ea156cec8a2ef103909b725355c4"},
